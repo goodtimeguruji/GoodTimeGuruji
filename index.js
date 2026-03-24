@@ -3,6 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { runAuspiciousCheckAcrossDatesModel } from "./models/models.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Import service handlers
 import runAuspiciousCheckAcrossDates from "./services/daterangefullcheck.js";
@@ -38,26 +40,14 @@ import runAuspiciousCheckAcrossDatesProdtest from "./services/testingprod.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 🔒 Security Middleware
 app.use(helmet()); // Secure headers
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  null, // ✅ allow file:// (null origin)
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || origin === "null") {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS: " + origin));
-    }
-  },
-  methods: ["POST"],
+  origin: "*",
+  methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));
 app.disable("x-powered-by"); // Hide Express info
