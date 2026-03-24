@@ -1,0 +1,1 @@
+// placeholder for auspiciousRoutes.js
