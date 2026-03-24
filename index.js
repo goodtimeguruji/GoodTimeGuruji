@@ -62,6 +62,14 @@ app.use(limiter);
 
 // 🔐 Parse JSON safely (limit payload size)
 app.use(express.json({ limit: "10kb" }));
+// 🔥 Serve frontend files
+app.use(express.static(path.join(__dirname, "public")));
+
+
+// ✅ Serve homepage manually
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "GoodTimeVaithi.html"));
+});
 
 // 📌 Route Setup Helper
 const setupRoute = (path, handler) => {
