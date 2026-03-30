@@ -16,6 +16,11 @@
   --second-font: "Poppins", sans-serif;
 }
 
+.af-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .af-suggestions {
   position: absolute;
   width: 100%;
