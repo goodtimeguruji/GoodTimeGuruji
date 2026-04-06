@@ -363,7 +363,7 @@
                     return;
                 }
             }
-            const API_BASE = window.location.origin;
+            const API_BASE = "";
 
             const url = mode === "signup"
                 ? `${API_BASE}/api/auth/signup`
@@ -394,7 +394,7 @@
 
 
         function handleGoogleLogin(response) {
-            fetch(`${window.location.origin}/api/auth/google`, {
+            fetch(`/api/auth/google`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

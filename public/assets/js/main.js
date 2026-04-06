@@ -137,7 +137,7 @@ if (authForm) {
     }
 
     try {
-      const res = await fetch(`${window.location.origin}/api/auth/${authMode}`, {
+      const res = await fetch(`/api/auth/${authMode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -164,7 +164,7 @@ if (authForm) {
 function handleGoogleLogin(response) {
   const credential = response.credential;
 
-  fetch(`${window.location.origin}/api/auth/google`, {
+  fetch(`/api/auth/google`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -236,7 +236,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     try {
-      const res = await fetch(`${window.location.origin}/api/auth/get-user`, {
+      const res = await fetch(`/api/auth/get-user`, {
         headers: {
           Authorization: "Bearer " + token
         }
@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (e.target.id === "logoutBtn") {
       const token = localStorage.getItem("token");
 
-      fetch(`${window.location.origin}/api/auth/logout`, {
+      fetch(`/api/auth/logout`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + token
