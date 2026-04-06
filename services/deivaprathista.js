@@ -1,5 +1,5 @@
-import { get } from "http";
-import fetch from "node-fetch";
+
+
 
 async function getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place) {
   const apiKey = "a3a1ab378702c90ccc523c59a888f28b";

@@ -1,5 +1,3 @@
-import { get } from "http";
-import fetch from "node-fetch";
 
 async function getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place) {
   const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
@@ -24,7 +22,7 @@ async function getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place) {
     headers: { Authorization: authToken, "Content-Type": "application/x-www-form-urlencoded" },
     body: formData.toString()
   });
-
+  
   const data = await res.json();
   const merged = [];
   let current = null;

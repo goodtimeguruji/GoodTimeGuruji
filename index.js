@@ -37,6 +37,7 @@ import runAuspiciousCheckAcrossDatesCuttingGrains from "./services/CuttingGrains
 import runAuspiciousCheckAcrossDatesLandRegistration from "./services/LandRegistration.js";
 import runAuspiciousCheckAcrossDatesExamFees from "./services/ExamFees.js";
 import runAuspiciousCheckAcrossDatesProdtest from "./services/testingprod.js";
+import authRoutes from "./services/authRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,9 +49,11 @@ app.use(helmet()); // Secure headers
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.disable("x-powered-by"); // Hide Express info
+
+
 
 // 🚦 Rate limiting (avoid brute force/abuse)
 const limiter = rateLimit({
@@ -58,12 +61,15 @@ const limiter = rateLimit({
   max: 100, // requests per window per IP
   message: "Too many requests, try again later."
 });
-app.use(limiter);
+app.use("/api", limiter);
 
 // 🔐 Parse JSON safely (limit payload size)
 app.use(express.json({ limit: "10kb" }));
+//auth
+app.use("/api/auth", authRoutes);
 // 🔥 Serve frontend files
 app.use(express.static(path.join(__dirname, "public")));
+
 
 
 // ✅ Serve homepage manually
@@ -72,8 +78,10 @@ app.get("/", (req, res) => {
 });
 
 // 📌 Route Setup Helper
+import { verifyToken } from "./services/authMiddleware.js";
+
 const setupRoute = (path, handler) => {
-  app.post(path, async (req, res, next) => {
+  app.post(path, verifyToken, async (req, res, next) => {
     try {
       console.log("✅ Received params:", req.body);
 
@@ -127,6 +135,7 @@ setupRoute("/runAuspiciousCheckAcrossDatesCuttingGrains", runAuspiciousCheckAcro
 setupRoute("/runAuspiciousCheckAcrossDatesLandRegistration", runAuspiciousCheckAcrossDatesLandRegistration); 
 setupRoute("/runAuspiciousCheckAcrossDatesExamFees", runAuspiciousCheckAcrossDatesExamFees); 
 setupRoute("/runAuspiciousCheckAcrossDatesProdtest", runAuspiciousCheckAcrossDatesProdtest);
+
 
 // 🛡️ Centralized Error Handler
 app.use((err, req, res, next) => {

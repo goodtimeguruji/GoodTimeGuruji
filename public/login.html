@@ -4,6 +4,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <meta http-equiv="Content-Security-Policy" content="
+default-src 'self';
+script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+connect-src 'self' https://nominatim.openstreetmap.org http://localhost:3000;
+style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;
+font-src 'self' https://fonts.gstatic.com;
+">
     <title>Muhurat Finder || Good Time Guruji</title>
     <link rel="stylesheet" href="./assets/css/style.css" />
     <link rel="stylesheet" href="./assets/css/bootstrap.min.css" />
@@ -58,8 +65,16 @@
 
                     <a href="about-us.html">About Us</a>
                     <a href="contact-us.html">Contact Us</a>
+                    <div class="dropdown ml-3" id="userDropdown" style="display:none;">
+                        <button class="btn btn-dark dropdown-toggle" data-toggle="dropdown">
+                            <span id="usernameDisplay">User</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="#" id="logoutBtn">Logout</a>
+                        </div>
+                    </div>
 
-                    <a href="#" class="login-btn">Login / Sign Up</a>
+                    <a href="login.html" class="login-btn ml-3" id="loginBtn">Login / Sign Up</a>
                 </nav>
 
                 <!-- Mobile Button (shows in menu bar) -->
@@ -131,7 +146,7 @@
             <div class="row justify-content-center mb-4">
                 <div class="col-lg-11 text-center">
                     <h2 class="af-title mb-1">Sign up/Login</h2>
-                    
+
                 </div>
             </div>
 
@@ -199,7 +214,8 @@
                                     <div class="row align-items-center mb-3">
                                         <div class="col-md-4 text-md-end"></div>
                                         <div class="col-md-8">
-                                            <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                                            <div id="g_id_onload"
+                                                data-client_id="649736080494-av3f5io3u6mjr2md0a628ntlcmmvsjqa.apps.googleusercontent.com"
                                                 data-callback="handleGoogleLogin">
                                             </div>
 
@@ -317,6 +333,97 @@
     <script src="./assets/js/jquery-3.5.1.min.js"></script>
     <script src="./assets/js/bootstrap.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        let mode = "login";
+
+        function toggleAuth(type) {
+            mode = type;
+
+            document.getElementById("nameField").style.display =
+                type === "signup" ? "flex" : "none";
+
+            document.getElementById("confirmPasswordField").style.display =
+                type === "signup" ? "flex" : "none";
+
+            document.getElementById("submitBtn").innerText =
+                type === "signup" ? "Sign Up" : "Login";
+        }
+
+        document.getElementById("authForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            if (!email || !password) {
+                alert("Please fill all required fields");
+                return;
+            }
+
+            if (mode === "signup") {
+                const confirmPassword = document.getElementById("confirmPassword").value;
+
+                if (password !== confirmPassword) {
+                    alert("Passwords do not match");
+                    return;
+                }
+            }
+            const API_BASE = "http://localhost:3000";
+
+            const url = mode === "signup"
+                ? `${API_BASE}/api/auth/signup`
+                : `${API_BASE}/api/auth/login`;
+
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(
+                    mode === "signup"
+                        ? { name, email, password }
+                        : { email, password }
+                )
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                alert(result.message || "Error occurred");
+                return;
+            }
+
+            localStorage.setItem("token", result.token);
+
+            // 🔥 Redirect to main page
+            window.location.href = "index.html";
+        });
+
+
+        function handleGoogleLogin(response) {
+            fetch("http://localhost:3000/api/auth/google", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    token: response.credential
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.token) {
+                        alert("Google login failed");
+                        return;
+                    }
+
+                    localStorage.setItem("token", data.token);
+                    window.location.href = "index.html";
+                })
+                .catch(() => {
+                    alert("Google login error");
+                });
+        }
+    </script>
 </body>
 
 </html>
