@@ -14,7 +14,7 @@ import runAuspiciousCheckAcrossDatesAnnaprasana from "./services/Annaprasana.js"
 import runAuspiciousCheckAcrossDatesInvestment from "./services/investment.js";
 import runAuspiciousCheckAcrossDatesVidhyaarambha from "./services/vidhyaaramba.js";
 import runAuspiciousCheckAcrossDatesPumsuvanam from "./services/Pumsuvanam.js";
-import runAuspiciousCheckAcrossDatesVishnuBali from "./services/VishnuBali.js"; 
+import runAuspiciousCheckAcrossDatesVishnuBali from "./services/VishnuBali.js";
 import runAuspiciousCheckAcrossDatesDeliveryAdmission from "./services/DeliveryAdmission.js";
 import runAuspiciousCheckAcrossDatesChildCradling from "./services/ChildCradling.js";
 import runAuspiciousCheckAcrossDatesHeadShave from "./services/HeadShave.js";
@@ -40,12 +40,27 @@ import runAuspiciousCheckAcrossDatesProdtest from "./services/testingprod.js";
 import authRoutes from "./services/authRoutes.js";
 
 const app = express();
+
+// 🔥 ADD CSP HERE
+app.use((req, res, next) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com https://apis.google.com; connect-src 'self' https://nominatim.openstreetmap.org http://localhost:3000 https://accounts.google.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com https://ssl.gstatic.com; frame-src https://accounts.google.com;"
+  );
+  next();
+});
+
 const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 🔒 Security Middleware
-app.use(helmet()); // Secure headers
+//app.use(helmet()); 
+app.use(
+  helmet({
+    contentSecurityPolicy: false
+  })
+);// Secure headers
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST"],
@@ -111,29 +126,29 @@ setupRoute("/runAuspiciousCheckAcrossDatesAksharaaramba", runAuspiciousCheckAcro
 setupRoute("/runAuspiciousCheckAcrossDatesAnnaprasana", runAuspiciousCheckAcrossDatesAnnaprasana);
 setupRoute("/runAuspiciousCheckAcrossDatesInvestment", runAuspiciousCheckAcrossDatesInvestment);
 setupRoute("/runAuspiciousCheckAcrossDatesVidhyaarambha", runAuspiciousCheckAcrossDatesVidhyaarambha);
-setupRoute("/runAuspiciousCheckAcrossDatesPumsuvanam", runAuspiciousCheckAcrossDatesPumsuvanam);  
-setupRoute("/runAuspiciousCheckAcrossDatesVishnuBali", runAuspiciousCheckAcrossDatesVishnuBali); 
-setupRoute("/runAuspiciousCheckAcrossDatesDeliveryAdmission", runAuspiciousCheckAcrossDatesDeliveryAdmission); 
-setupRoute("/runAuspiciousCheckAcrossDatesChildCradling", runAuspiciousCheckAcrossDatesChildCradling); 
-setupRoute("/runAuspiciousCheckAcrossDatesHeadShave", runAuspiciousCheckAcrossDatesHeadShave); 
-setupRoute("/runAuspiciousCheckAcrossDatesNewPortfolio", runAuspiciousCheckAcrossDatesNewPortfolio); 
-setupRoute("/runAuspiciousCheckAcrossDatesUpanayanam", runAuspiciousCheckAcrossDatesUpanayanam); 
-setupRoute("/runAuspiciousCheckAcrossDatesTravel", runAuspiciousCheckAcrossDatesTravel); 
-setupRoute("/runAuspiciousCheckAcrossDatesConstruction", runAuspiciousCheckAcrossDatesConstruction); 
-setupRoute("/runAuspiciousCheckAcrossDatesGruhaPravesam", runAuspiciousCheckAcrossDatesGruhaPravesam); 
-setupRoute("/runAuspiciousCheckAcrossDatesNilaiPadi", runAuspiciousCheckAcrossDatesNilaiPadi); 
-setupRoute("/runAuspiciousCheckAcrossDatesVehiclePurchase", runAuspiciousCheckAcrossDatesVehiclePurchase); 
-setupRoute("/runAuspiciousCheckAcrossDatesStartBuisiness", runAuspiciousCheckAcrossDatesStartBuisiness); 
-setupRoute("/runAuspiciousCheckAcrossDatesTakingMedicine", runAuspiciousCheckAcrossDatesTakingMedicine); 
-setupRoute("/runAuspiciousCheckAcrossDatesSurgery", runAuspiciousCheckAcrossDatesSurgery); 
-setupRoute("/runAuspiciousCheckAcrossDatesArogyaSnanam", runAuspiciousCheckAcrossDatesArogyaSnanam); 
-setupRoute("/runAuspiciousCheckAcrossDatesOilBath", runAuspiciousCheckAcrossDatesOilBath); 
-setupRoute("/runAuspiciousCheckAcrossDatesBhooPravesam", runAuspiciousCheckAcrossDatesBhooPravesam); 
-setupRoute("/runAuspiciousCheckAcrossDatesCultivation", runAuspiciousCheckAcrossDatesCultivation); 
-setupRoute("/runAuspiciousCheckAcrossDatesPlantingSeeds", runAuspiciousCheckAcrossDatesPlantingSeeds); 
-setupRoute("/runAuspiciousCheckAcrossDatesCuttingGrains", runAuspiciousCheckAcrossDatesCuttingGrains); 
-setupRoute("/runAuspiciousCheckAcrossDatesLandRegistration", runAuspiciousCheckAcrossDatesLandRegistration); 
-setupRoute("/runAuspiciousCheckAcrossDatesExamFees", runAuspiciousCheckAcrossDatesExamFees); 
+setupRoute("/runAuspiciousCheckAcrossDatesPumsuvanam", runAuspiciousCheckAcrossDatesPumsuvanam);
+setupRoute("/runAuspiciousCheckAcrossDatesVishnuBali", runAuspiciousCheckAcrossDatesVishnuBali);
+setupRoute("/runAuspiciousCheckAcrossDatesDeliveryAdmission", runAuspiciousCheckAcrossDatesDeliveryAdmission);
+setupRoute("/runAuspiciousCheckAcrossDatesChildCradling", runAuspiciousCheckAcrossDatesChildCradling);
+setupRoute("/runAuspiciousCheckAcrossDatesHeadShave", runAuspiciousCheckAcrossDatesHeadShave);
+setupRoute("/runAuspiciousCheckAcrossDatesNewPortfolio", runAuspiciousCheckAcrossDatesNewPortfolio);
+setupRoute("/runAuspiciousCheckAcrossDatesUpanayanam", runAuspiciousCheckAcrossDatesUpanayanam);
+setupRoute("/runAuspiciousCheckAcrossDatesTravel", runAuspiciousCheckAcrossDatesTravel);
+setupRoute("/runAuspiciousCheckAcrossDatesConstruction", runAuspiciousCheckAcrossDatesConstruction);
+setupRoute("/runAuspiciousCheckAcrossDatesGruhaPravesam", runAuspiciousCheckAcrossDatesGruhaPravesam);
+setupRoute("/runAuspiciousCheckAcrossDatesNilaiPadi", runAuspiciousCheckAcrossDatesNilaiPadi);
+setupRoute("/runAuspiciousCheckAcrossDatesVehiclePurchase", runAuspiciousCheckAcrossDatesVehiclePurchase);
+setupRoute("/runAuspiciousCheckAcrossDatesStartBuisiness", runAuspiciousCheckAcrossDatesStartBuisiness);
+setupRoute("/runAuspiciousCheckAcrossDatesTakingMedicine", runAuspiciousCheckAcrossDatesTakingMedicine);
+setupRoute("/runAuspiciousCheckAcrossDatesSurgery", runAuspiciousCheckAcrossDatesSurgery);
+setupRoute("/runAuspiciousCheckAcrossDatesArogyaSnanam", runAuspiciousCheckAcrossDatesArogyaSnanam);
+setupRoute("/runAuspiciousCheckAcrossDatesOilBath", runAuspiciousCheckAcrossDatesOilBath);
+setupRoute("/runAuspiciousCheckAcrossDatesBhooPravesam", runAuspiciousCheckAcrossDatesBhooPravesam);
+setupRoute("/runAuspiciousCheckAcrossDatesCultivation", runAuspiciousCheckAcrossDatesCultivation);
+setupRoute("/runAuspiciousCheckAcrossDatesPlantingSeeds", runAuspiciousCheckAcrossDatesPlantingSeeds);
+setupRoute("/runAuspiciousCheckAcrossDatesCuttingGrains", runAuspiciousCheckAcrossDatesCuttingGrains);
+setupRoute("/runAuspiciousCheckAcrossDatesLandRegistration", runAuspiciousCheckAcrossDatesLandRegistration);
+setupRoute("/runAuspiciousCheckAcrossDatesExamFees", runAuspiciousCheckAcrossDatesExamFees);
 setupRoute("/runAuspiciousCheckAcrossDatesProdtest", runAuspiciousCheckAcrossDatesProdtest);
 
 
