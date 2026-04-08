@@ -14,7 +14,7 @@ import { runAuspiciousCheckAcrossDatesModel } from "./models/models.js";
 
 
 // Import service handlers
-import runAuspiciousCheckAcrossDates from "./services/daterangefullcheck.js";
+//import runAuspiciousCheckAcrossDates from "./services/daterangefullcheck.js";
 import runAuspiciousCheckAcrossDatesDeivaPrathishta from "./services/deivaprathista.js";
 import runAuspiciousCheckAcrossDatesAksharaaramba from "./services/Aksharaaramba.js";
 import runAuspiciousCheckAcrossDatesAnnaprasana from "./services/Annaprasana.js";
