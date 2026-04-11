@@ -14,7 +14,7 @@ import { runAuspiciousCheckAcrossDatesModel } from "./models/models.js";
 
 
 // Import service handlers
-//import runAuspiciousCheckAcrossDates from "./services/daterangefullcheck.js";
+
 import runAuspiciousCheckAcrossDatesDeivaPrathishta from "./services/deivaprathista.js";
 import runAuspiciousCheckAcrossDatesAksharaaramba from "./services/Aksharaaramba.js";
 import runAuspiciousCheckAcrossDatesAnnaprasana from "./services/Annaprasana.js";
@@ -43,7 +43,6 @@ import runAuspiciousCheckAcrossDatesPlantingSeeds from "./services/PlantingSeeds
 import runAuspiciousCheckAcrossDatesCuttingGrains from "./services/CuttingGrains.js";
 import runAuspiciousCheckAcrossDatesLandRegistration from "./services/LandRegistration.js";
 import runAuspiciousCheckAcrossDatesExamFees from "./services/ExamFees.js";
-import runAuspiciousCheckAcrossDatesProdtest from "./services/testingprod.js";
 import authRoutes from "./services/authRoutes.js";
 
 const app = express();
@@ -96,7 +95,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // ✅ Serve homepage manually
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "GoodTimeVaithi.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // 📌 Route Setup Helper
