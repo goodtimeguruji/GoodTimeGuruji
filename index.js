@@ -126,7 +126,7 @@ const setupRoute = (path, handler) => {
 };
 
 // 📌 Define all routes
-setupRoute("/runAuspiciousCheckAcrossDates", runAuspiciousCheckAcrossDates);
+
 setupRoute("/runAuspiciousCheckAcrossDatesDeivaPrathishta", runAuspiciousCheckAcrossDatesDeivaPrathishta);
 setupRoute("/runAuspiciousCheckAcrossDatesAksharaaramba", runAuspiciousCheckAcrossDatesAksharaaramba);
 setupRoute("/runAuspiciousCheckAcrossDatesAnnaprasana", runAuspiciousCheckAcrossDatesAnnaprasana);
@@ -155,7 +155,7 @@ setupRoute("/runAuspiciousCheckAcrossDatesPlantingSeeds", runAuspiciousCheckAcro
 setupRoute("/runAuspiciousCheckAcrossDatesCuttingGrains", runAuspiciousCheckAcrossDatesCuttingGrains);
 setupRoute("/runAuspiciousCheckAcrossDatesLandRegistration", runAuspiciousCheckAcrossDatesLandRegistration);
 setupRoute("/runAuspiciousCheckAcrossDatesExamFees", runAuspiciousCheckAcrossDatesExamFees);
-setupRoute("/runAuspiciousCheckAcrossDatesProdtest", runAuspiciousCheckAcrossDatesProdtest);
+//setupRoute("/runAuspiciousCheckAcrossDatesProdtest", runAuspiciousCheckAcrossDatesProdtest);
 
 
 // 🛡️ Centralized Error Handler
