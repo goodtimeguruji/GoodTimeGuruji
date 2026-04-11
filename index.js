@@ -8,6 +8,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { runAuspiciousCheckAcrossDatesModel } from "./models/models.js";
+import { initDB } from "./services/db.js"; // adjust path if needed
 
 
 
@@ -168,6 +169,18 @@ app.use((err, req, res, next) => {
 });
 
 // ✅ Start server once
-app.listen(PORT, () => {
-  console.log(`🚀 API running at http://localhost:${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await initDB();
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+
+  } catch (err) {
+    console.error("❌ Failed to start server:", err);
+    process.exit(1);
+  }
+};
+
+startServer();
