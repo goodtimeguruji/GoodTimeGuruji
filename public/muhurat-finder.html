@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+
   <title>Muhurat Finder || Good Time Guruji</title>
   <link rel="stylesheet" href="./assets/css/style.css" />
   <link rel="stylesheet" href="./assets/css/bootstrap.min.css" />
@@ -309,8 +309,10 @@
                     </label>
                   </div>
                   <!-- <button type="submit" class="af-btn af-submit">SUBMIT</button> -->
-                  <button type="button" id="submitBtn" class="af-btn af-submit" disabled
-                    onclick="submitService()">Submit</button>
+                  <button type="button" id="submitBtn" class="af-btn af-submit" disabled onclick="submitService()">
+                    <span id="btnText">Submit</span>
+                    <span id="btnLoader" class="spinner-border spinner-border-sm ms-2" style="display:none;"></span>
+                  </button>
                 </div>
               </div>
           </div>
@@ -586,30 +588,37 @@
     const API_BASE_URL = window.location.origin; // change in production
 
     async function submitService() {
-      if (!document.getElementById("terms").checked) {
-        alert("Please accept Terms & Conditions");
-        return;
-      }
+      const btn = document.getElementById("submitBtn");
+      const btnText = document.getElementById("btnText");
+      const loader = document.getElementById("btnLoader");
 
-      const selectedService = document.getElementById("functionService").value;
-
-      if (!selectedService) {
-        alert("Please select a service");
-        return;
-      }
-
-      const data = {
-        fromDateStr: document.getElementById("fromDate").value,
-        toDateStr: document.getElementById("toDate").value,
-        userNakshatra: document.getElementById("nakshatram").value,
-        userRasi: document.getElementById("rasi").value,
-        place: document.getElementById("location").value,
-        lat: document.getElementById("lat").value,
-        lon: document.getElementById("lon").value,
-        tzone: document.getElementById("timezone").value
-      };
+      // 🚀 START LOADING
+      btn.disabled = true;
+      btnText.innerText = "Finding Muhurat...";
+      loader.style.display = "inline-block";
 
       try {
+        if (!document.getElementById("terms").checked) {
+          throw new Error("Please accept Terms & Conditions");
+        }
+
+        const selectedService = document.getElementById("functionService").value;
+
+        if (!selectedService) {
+          throw new Error("Please select a service");
+        }
+
+        const data = {
+          fromDateStr: document.getElementById("fromDate").value,
+          toDateStr: document.getElementById("toDate").value,
+          userNakshatra: document.getElementById("nakshatram").value,
+          userRasi: document.getElementById("rasi").value,
+          place: document.getElementById("location").value,
+          lat: document.getElementById("lat").value,
+          lon: document.getElementById("lon").value,
+          tzone: document.getElementById("timezone").value
+        };
+
         const res = await fetch(`${API_BASE_URL}/${selectedService}`, {
           method: "POST",
           headers: {
@@ -620,7 +629,6 @@
         });
 
         if (res.status === 401) {
-          alert("Session expired. Please login again.");
           localStorage.removeItem("token");
           window.location.href = "login.html";
           return;
@@ -631,16 +639,17 @@
         }
 
         const responseData = await res.json();
-
-        // Save to localStorage
         localStorage.setItem("muhuratResults", JSON.stringify(responseData));
 
-        // Redirect
         window.location.href = "muhurat-result.html";
 
       } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
+        alert(err.message || "Something went wrong");
+
+        // ❌ RESET BUTTON ON ERROR
+        btn.disabled = false;
+        btnText.innerText = "Submit";
+        loader.style.display = "none";
       }
     }
 
