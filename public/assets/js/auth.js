@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (token) {
     try {
-      const res = await fetch(`${window.location.origin}/api/auth/user`, {
+      const res = await fetch(`${window.location.origin}/api/auth/get-user`, {
         headers: {
           Authorization: "Bearer " + token
         }
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // logout
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async () => {
-      await fetch("https://goodtimeguruji.in/api/auth/logout", {
+      await fetch(`${window.location.origin}/api/auth/logout`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + token
