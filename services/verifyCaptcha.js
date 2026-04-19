@@ -8,11 +8,11 @@ const __dirname = path.dirname(__filename);
 // ✅ Universal key path
 const keyPath =
   process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-  path.join(__dirname, "../goodtimeguruji-491009-39c98ea50cf8.json");
+  path.join(__dirname, "goodtimeguruji-491009-a2cf4df46b09.json");
 
 // ✅ Use credentials properly
 const client = new RecaptchaEnterpriseServiceClient({
-  keyFilename: keyPath,
+  keyFilename: "./goodtimeguruji-491009-a2cf4df46b09.json",
 });
 
 export const verifyCaptcha = async (req, res, next) => {
