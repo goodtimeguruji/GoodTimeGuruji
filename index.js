@@ -52,7 +52,12 @@ const app = express();
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com https://apis.google.com; connect-src 'self' https://nominatim.openstreetmap.org http://localhost:3000 https://accounts.google.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://accounts.google.com; font-src 'self' https://fonts.gstatic.com https://ssl.gstatic.com; frame-src https://accounts.google.com;"
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com https://apis.google.com https://www.google.com https://www.gstatic.com; " +
+    "connect-src 'self' http://localhost:3000 https://accounts.google.com https://apis.google.com https://www.google.com; " +
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://accounts.google.com; " +
+    "font-src 'self' https://fonts.gstatic.com https://ssl.gstatic.com; " +
+    "frame-src https://accounts.google.com https://www.google.com;"
   );
   next();
 });

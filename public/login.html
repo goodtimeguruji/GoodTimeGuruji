@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="./assets/fontawsome/css/all.min.css" />
     <link rel="stylesheet" href="./assets/fontawsome/css/fontawesome.min.css" />
     <link rel="stylesheet" href="./assets/css/bootstrap-icons.css" />
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD"></script>
 </head>
 
 <body>
@@ -219,7 +220,6 @@
                                             </div>
                                         </div>
                                     </div>
-
                                     <!-- SUBMIT -->
                                     <div class="row align-items-center mt-3">
                                         <div class="col-md-4 text-md-end"></div>
@@ -363,7 +363,26 @@
                     return;
                 }
             }
+            let token;
+
+                await new Promise((resolve) => {
+                    grecaptcha.enterprise.ready(async () => {
+                        token = await grecaptcha.enterprise.execute(
+                            "6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD",
+                            { action: mode === "signup" ? "signup" : "login" }
+                        );
+                        resolve(); // ✅ WAIT properly
+                    });
+                });
+
+            console.log("Generated token:", token);
+
             const API_BASE = window.location.origin;
+
+            if (!window.grecaptcha) {
+    alert("reCAPTCHA not loaded");
+    return;
+}
 
             const url = mode === "signup"
                 ? `${API_BASE}/api/auth/signup`
@@ -374,8 +393,8 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(
                     mode === "signup"
-                        ? { name, email, password }
-                        : { email, password }
+                        ? { name, email, password, token }
+                        : { email, password, token }
                 )
             });
 
