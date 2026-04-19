@@ -100,65 +100,6 @@ function selectLocation(index) {
 }
 
 
-// ================= LOGIN / SIGNUP =================
-
-let authMode = "login";
-
-function toggleAuth(mode) {
-  authMode = mode;
-
-  const nameField = document.getElementById("nameField");
-  const confirmPasswordField = document.getElementById("confirmPasswordField");
-  const submitBtn = document.getElementById("submitBtn");
-
-  if (nameField) nameField.style.display = mode === "signup" ? "flex" : "none";
-  if (confirmPasswordField) confirmPasswordField.style.display = mode === "signup" ? "flex" : "none";
-  if (submitBtn) submitBtn.textContent = mode === "signup" ? "Sign Up" : "Login";
-}
-
-const authForm = document.getElementById("authForm");
-
-if (authForm) {
-  authForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const data = {
-      name: document.getElementById("name")?.value,
-      email: document.getElementById("email")?.value,
-      password: document.getElementById("password")?.value
-    };
-
-    if (authMode === "signup") {
-      const confirmPassword = document.getElementById("confirmPassword")?.value;
-      if (data.password !== confirmPassword) {
-        alert("Passwords do not match");
-        return;
-      }
-    }
-
-    try {
-      const res = await fetch(`${window.location.origin}/api/auth/${authMode}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-
-      const result = await res.json();
-
-      if (result.token) {
-        localStorage.setItem("token", result.token);
-        window.location.href = "index.html";
-      } else {
-        alert(result.message || "Error");
-      }
-
-    } catch (err) {
-      alert("Error: " + err.message);
-    }
-  });
-}
-
-
 // ================= GOOGLE LOGIN =================
 
 function handleGoogleLogin(response) {

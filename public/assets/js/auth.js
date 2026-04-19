@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (token) {
     try {
-      const res = await fetch("https://goodtimeguruji.in/api/auth/user", {
+      const res = await fetch(`${window.location.origin}/api/auth/user`, {
         headers: {
           Authorization: "Bearer " + token
         }
