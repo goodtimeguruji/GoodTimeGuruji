@@ -1,6 +1,19 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import { RecaptchaEnterpriseServiceClient } from "@google-cloud/recaptcha-enterprise";
 
-const client = new RecaptchaEnterpriseServiceClient();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ✅ Universal key path
+const keyPath =
+  process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+  path.join(__dirname, "../goodtimeguruji-491009-39c98ea50cf8.json");
+
+// ✅ Use credentials properly
+const client = new RecaptchaEnterpriseServiceClient({
+  keyFilename: keyPath,
+});
 
 export const verifyCaptcha = async (req, res, next) => {
   try {
@@ -11,11 +24,8 @@ export const verifyCaptcha = async (req, res, next) => {
     }
 
     const projectID = "goodtimeguruji-491009";
-
-    // ✅ FIX 1: Use real site key
     const recaptchaKey = "6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD";
 
-    // ✅ FIX 2: Match frontend action dynamically
     const recaptchaAction = req.path.includes("signup") ? "signup" : "login";
 
     const projectPath = client.projectPath(projectID);
@@ -32,7 +42,6 @@ export const verifyCaptcha = async (req, res, next) => {
 
     const [response] = await client.createAssessment(request);
 
-    // ❌ Invalid token
     if (!response.tokenProperties.valid) {
       return res.status(403).json({
         message: "Invalid captcha",
@@ -40,14 +49,12 @@ export const verifyCaptcha = async (req, res, next) => {
       });
     }
 
-    // ❌ Action mismatch
     if (response.tokenProperties.action !== recaptchaAction) {
       return res.status(403).json({
         message: "Captcha action mismatch",
       });
     }
 
-    // ✅ Score check
     const score = response.riskAnalysis.score;
 
     if (score < 0.5) {
