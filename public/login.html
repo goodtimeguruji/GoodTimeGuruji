@@ -363,17 +363,17 @@
                     return;
                 }
             }
-            let token;
+           let token;
 
-                await new Promise((resolve) => {
-                    grecaptcha.enterprise.ready(async () => {
-                        token = await grecaptcha.enterprise.execute(
-                            "6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD",
-                            { action: mode === "signup" ? "signup" : "login" }
-                        );
-                        resolve(); // ✅ WAIT properly
-                    });
-                });
+            await new Promise((resolve) => {
+            grecaptcha.enterprise.ready(async () => {
+                token = await grecaptcha.enterprise.execute(
+                "6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD",
+                { action: mode === "signup" ? "signup" : "login" }
+                );
+                resolve();
+            });
+            });
 
             console.log("Generated token:", token);
 
