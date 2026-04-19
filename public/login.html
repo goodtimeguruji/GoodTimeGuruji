@@ -343,73 +343,96 @@
                 type === "signup" ? "Sign Up" : "Login";
         }
 
-        document.getElementById("authForm").addEventListener("submit", async function (e) {
-            e.preventDefault();
+        let isSubmitting = false;
 
-            const name = document.getElementById("name").value;
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+document.getElementById("authForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-            if (!email || !password) {
-                alert("Please fill all required fields");
+    if (isSubmitting) return;
+    isSubmitting = true;
+
+    try {
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        if (!email || !password) {
+            alert("Please fill all required fields");
+            isSubmitting = false;
+            return;
+        }
+
+        if (mode === "signup") {
+            const confirmPassword = document.getElementById("confirmPassword").value;
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match");
+                isSubmitting = false;
                 return;
             }
+        }
 
-            if (mode === "signup") {
-                const confirmPassword = document.getElementById("confirmPassword").value;
+        // ✅ WAIT FOR CAPTCHA PROPERLY
+        if (!window.grecaptcha) {
+            alert("reCAPTCHA not loaded");
+            isSubmitting = false;
+            return;
+        }
 
-                if (password !== confirmPassword) {
-                    alert("Passwords do not match");
-                    return;
-                }
-            }
-           let token;
+        let token;
 
-            await new Promise((resolve) => {
+        await new Promise((resolve) => {
             grecaptcha.enterprise.ready(async () => {
                 token = await grecaptcha.enterprise.execute(
-                "6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD",
-                { action: mode === "signup" ? "signup" : "login" }
+                    "6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD",
+                    { action: mode === "signup" ? "signup" : "login" }
                 );
                 resolve();
             });
-            });
-
-            console.log("Generated token:", token);
-
-            const API_BASE = window.location.origin;
-
-            if (!window.grecaptcha) {
-    alert("reCAPTCHA not loaded");
-    return;
-}
-
-            const url = mode === "signup"
-                ? `${API_BASE}/api/auth/signup`
-                : `${API_BASE}/api/auth/login`;
-
-            const res = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(
-                    mode === "signup"
-                        ? { name, email, password, token }
-                        : { email, password, token }
-                )
-            });
-
-            const result = await res.json();
-
-            if (!res.ok) {
-                alert(result.message || "Error occurred");
-                return;
-            }
-
-            localStorage.setItem("token", result.token);
-
-            // 🔥 Redirect to main page
-            window.location.href = "index.html";
         });
+
+        if (!token) {
+            alert("Captcha failed. Try again.");
+            isSubmitting = false;
+            return;
+        }
+
+        console.log("Generated token:", token);
+
+        const API_BASE = window.location.origin;
+
+        const url = mode === "signup"
+            ? `${API_BASE}/api/auth/signup`
+            : `${API_BASE}/api/auth/login`;
+
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(
+                mode === "signup"
+                    ? { name, email, password, token }
+                    : { email, password, token }
+            )
+        });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+            alert(result.message || "Error occurred");
+            isSubmitting = false;
+            return;
+        }
+
+        localStorage.setItem("token", result.token);
+        window.location.href = "index.html";
+
+    } catch (err) {
+        console.error(err);
+        alert("Something went wrong");
+    }
+
+    isSubmitting = false;
+});
 
 
         function handleGoogleLogin(response) {
