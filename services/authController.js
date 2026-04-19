@@ -116,7 +116,6 @@ export const googleLogin = async (req, res) => {
     const payload = ticket.getPayload();
     const { email, name, sub } = payload;
 
-    // 🔍 check if user exists
     const [users] = await db.execute(
       "SELECT * FROM users WHERE email = ?",
       [email]
@@ -125,22 +124,26 @@ export const googleLogin = async (req, res) => {
     let user;
 
     if (users.length === 0) {
-      // ➕ create new user
       const [result] = await db.execute(
         "INSERT INTO users (name, email, google_id) VALUES (?, ?, ?)",
         [name, email, sub]
       );
 
-      user = { id: result.insertId, email };
+      user = { id: result.insertId, email, name };
     } else {
       user = users[0];
     }
 
-    // 🎟 JWT
     const jwtToken = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, name: user.name || name }, // ✅ FIX
       process.env.JWT_SECRET,
       { expiresIn: "12h" }
+    );
+
+    // ✅ Save token
+    await db.execute(
+      "UPDATE users SET token = ?, token_status = 'active' WHERE id = ?",
+      [jwtToken, user.id]
     );
 
     res.json({
