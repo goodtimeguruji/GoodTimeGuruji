@@ -1,5 +1,20 @@
-document.addEventListener("DOMContentLoaded", async () => {
+function isTokenValid() {
   const token = localStorage.getItem("token");
+  const expiry = localStorage.getItem("token_expiry");
+
+  if (!token || !expiry) return false;
+
+  return Date.now() < parseInt(expiry);
+}
+
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = isTokenValid() ? localStorage.getItem("token") : null;
+    if (!token) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("token_expiry");
+    }
 
   const loginBtn = document.getElementById("loginBtn");
   const userDropdown = document.getElementById("userDropdown");
@@ -39,8 +54,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-      localStorage.removeItem("token");
-      window.location.href = "index.html";
+    localStorage.removeItem("token");
+    localStorage.removeItem("token_expiry");
+    window.location.href = "index.html";
     });
   }
 });

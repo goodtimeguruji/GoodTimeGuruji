@@ -1,31 +1,53 @@
 import jwt from "jsonwebtoken";
-import { db } from "./db.js"; // ✅ ADD THIS
+import { db } from "./db.js";
 
-export const verifyToken = async (req, res, next) => { // ✅ make async
+export const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
     return res.status(401).json({ message: "No token provided" });
   }
 
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : authHeader;
+  if (!authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "Invalid token format" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Token missing" });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 🔥 ADD THIS BLOCK HERE (VERY IMPORTANT)
+    // ✅ session check
     const [rows] = await db.execute(
-      "SELECT token_status FROM users WHERE id = ?",
-      [decoded.id]
+      `SELECT status, expires_at FROM user_sessions 
+       WHERE token = ? AND user_id = ?`,
+      [token, decoded.id]
     );
 
-    if (!rows.length || rows[0].token_status !== "active") {
-      return res.status(401).json({ message: "Token expired" });
+    if (!rows.length || rows[0].status !== "active") {
+      return res.status(401).json({ message: "Invalid session" });
     }
 
-    // ✅ AFTER CHECK
+    const expiresAt = new Date(rows[0].expires_at).getTime();
+    const now = Date.now();
+
+    if (!expiresAt) {
+      return res.status(401).json({ message: "Invalid session expiry" });
+    }
+
+    if (expiresAt < now) {
+      await db.execute(
+        "UPDATE user_sessions SET status = 'expired' WHERE token = ?",
+        [token]
+      );
+
+      return res.status(401).json({ message: "Session expired" });
+    }
+
     req.user = decoded;
     next();
 

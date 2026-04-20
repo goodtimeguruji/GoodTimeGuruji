@@ -46,9 +46,13 @@ export const signup = async (req, res) => {
 
     // ✅ SAVE TOKEN
     await db.execute(
-      "UPDATE users SET token = ?, token_status = 'active' WHERE id = ?",
-      [token, result.insertId]
-    );
+  "INSERT INTO user_sessions (user_id, token, expires_at, status) VALUES (?, ?, ?, 'active')",
+  [
+    result.insertId,
+    token,
+    new Date(Date.now() + 12 * 60 * 60 * 1000)
+  ]
+);
 
     res.json({ message: "Signup successful", token });
 
@@ -91,9 +95,13 @@ export const login = async (req, res) => {
 
     // ✅ SAVE TOKEN IN DB
     await db.execute(
-      "UPDATE users SET token = ?, token_status = 'active' WHERE id = ?",
-      [token, user.id]
-    );
+  "INSERT INTO user_sessions (user_id, token, expires_at, status) VALUES (?, ?, ?, 'active')",
+  [
+    user.id,
+    token,
+    new Date(Date.now() + 12 * 60 * 60 * 1000)
+  ]
+);
 
     res.json({ message: "Login successful", token });
 
@@ -141,10 +149,14 @@ export const googleLogin = async (req, res) => {
     );
 
     // ✅ Save token
-    await db.execute(
-      "UPDATE users SET token = ?, token_status = 'active' WHERE id = ?",
-      [jwtToken, user.id]
-    );
+   await db.execute(
+  "INSERT INTO user_sessions (user_id, token, expires_at, status) VALUES (?, ?, ?, 'active')",
+  [
+    user.id,
+    jwtToken,
+    new Date(Date.now() + 12 * 60 * 60 * 1000)
+  ]
+);
 
     res.json({
       message: "Google login success",
@@ -174,12 +186,12 @@ export const getUser = (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const authHeader = req.headers.authorization;
+    const token = authHeader.split(" ")[1];
 
-    // 🔥 mark token expired
     await db.execute(
-      "UPDATE users SET token_status = 'expired' WHERE id = ?",
-      [userId]
+      "UPDATE user_sessions SET status = 'expired' WHERE token = ?",
+      [token]
     );
 
     res.json({ success: true, message: "Logged out" });

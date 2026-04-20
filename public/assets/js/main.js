@@ -115,7 +115,9 @@ function handleGoogleLogin(response) {
     .then(res => res.json())
     .then(data => {
       if (data.token) {
+        const expiry = Date.now() + (12 * 60 * 60 * 1000); // 12 hours
         localStorage.setItem("token", data.token);
+        localStorage.setItem("token_expiry", expiry);
         window.location.href = "index.html";
       } else {
         alert("Google login failed");
