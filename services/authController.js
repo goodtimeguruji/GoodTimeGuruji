@@ -45,7 +45,7 @@ export const signup = async (req, res) => {
     );
 
     // ✅ SAVE TOKEN
-    await db.execute(
+   await db.execute(
   "INSERT INTO user_sessions (user_id, token, expires_at, status) VALUES (?, ?, ?, 'active')",
   [
     result.insertId,

@@ -62,7 +62,11 @@ Thumbs.db
 *.seed
 *.pid.lock
 
+
 # =========================
 # Git (safety)
 # =========================
 .git/
+
+
+goodtimeguruji-491009-c45a856dd008.json

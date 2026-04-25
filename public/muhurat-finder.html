@@ -10,12 +10,8 @@
   <link rel="stylesheet" href="./assets/fontawsome/css/all.min.css" />
   <link rel="stylesheet" href="./assets/fontawsome/css/fontawesome.min.css" />
   <link rel="stylesheet" href="./assets/css/bootstrap-icons.css" />
-  <script>
-    const token = localStorage.getItem("token");
-    if (!token) {
-      window.location.href = "login.html";
-    }
-  </script>
+  <script src="./assets/js/auth.js"></script>
+  
 </head>
 
 <body>
@@ -248,34 +244,34 @@
                     <div class="col-md-8">
                       <select id="functionService" class="form-select af-input af-box" required>
                         <option value="" selected disabled>List of Functions</option>
-                        <option value="runAuspiciousCheckAcrossDatesDeivaPrathishta">Deiva Prathishta</option>
-                        <option value="runAuspiciousCheckAcrossDatesAksharaaramba">Aksharaaramba</option>
-                        <option value="runAuspiciousCheckAcrossDatesAnnaprasana">Annaprasana</option>
-                        <option value="runAuspiciousCheckAcrossDatesInvestment">Investment</option>
-                        <option value="runAuspiciousCheckAcrossDatesVidhyaarambha">Vidhyaarambha</option>
-                        <option value="runAuspiciousCheckAcrossDatesPumsuvanam">Pumsuvanam</option>
-                        <option value="runAuspiciousCheckAcrossDatesVishnuBali">Vishnu Bali</option>
-                        <option value="runAuspiciousCheckAcrossDatesDeliveryAdmission">Delivery Admission</option>
-                        <option value="runAuspiciousCheckAcrossDatesChildCradling">Child Cradling</option>
-                        <option value="runAuspiciousCheckAcrossDatesHeadShave">Head Shave</option>
-                        <option value="runAuspiciousCheckAcrossDatesNewPortfolio">New Portfolio</option>
-                        <option value="runAuspiciousCheckAcrossDatesUpanayanam">Upanayanam</option>
-                        <option value="runAuspiciousCheckAcrossDatesTravel">Travel</option>
-                        <option value="runAuspiciousCheckAcrossDatesConstruction">Construction</option>
-                        <option value="runAuspiciousCheckAcrossDatesGruhaPravesam">Gruha Pravesam</option>
-                        <option value="runAuspiciousCheckAcrossDatesNilaiPadi">Nilai Padi</option>
-                        <option value="runAuspiciousCheckAcrossDatesVehiclePurchase">Vehicle Purchase</option>
-                        <option value="runAuspiciousCheckAcrossDatesStartBuisiness">Start Business</option>
-                        <option value="runAuspiciousCheckAcrossDatesTakingMedicine">Taking Medicine</option>
-                        <option value="runAuspiciousCheckAcrossDatesSurgery">Surgery</option>
-                        <option value="runAuspiciousCheckAcrossDatesArogyaSnanam">Arogya Snanam</option>
-                        <option value="runAuspiciousCheckAcrossDatesOilBath">Oil Bath</option>
-                        <option value="runAuspiciousCheckAcrossDatesBhooPravesam">Bhoo Pravesam</option>
-                        <option value="runAuspiciousCheckAcrossDatesCultivation">Cultivation</option>
-                        <option value="runAuspiciousCheckAcrossDatesPlantingSeeds">Planting Seeds</option>
-                        <option value="runAuspiciousCheckAcrossDatesCuttingGrains">Cutting Grains</option>
-                        <option value="runAuspiciousCheckAcrossDatesLandRegistration">Land Registration</option>
-                        <option value="runAuspiciousCheckAcrossDatesExamFees">Exam Fees</option>
+                        <option value="runAuspiciousCheckAcrossDatesDeivaPrathishta">Deiva Prathistha / Consecration of Deity</option>
+                        <option value="runAuspiciousCheckAcrossDatesAksharaaramba">Aksharaarambham / Initiation into Learning</option>
+                        <option value="runAuspiciousCheckAcrossDatesAnnaprasana">Annaprasana / First Feeding Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesInvestment">Investment / Financial Investment</option>
+                        <option value="runAuspiciousCheckAcrossDatesVidhyaarambha">Vidyarambham / Commencement of Education</option>
+                        <option value="runAuspiciousCheckAcrossDatesPumsuvanam">Pumsavana / Prenatal Ritual Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesVishnuBali">Vishnu Bali / Vishnu Bali Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesDeliveryAdmission">Delivery Admission / Hospital Admission for Childbirth</option>
+                        <option value="runAuspiciousCheckAcrossDatesChildCradling">Child Cradling / Cradle Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesHeadShave">Head Shaving / First Tonsure Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesNewPortfolio">New Portfolio / New Investment Portfolio</option>
+                        <option value="runAuspiciousCheckAcrossDatesUpanayanam">Upanayanam / Sacred Thread Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesTravel">Travel / Journey</option>
+                        <option value="runAuspiciousCheckAcrossDatesConstruction">Construction / House Construction</option>
+                        <option value="runAuspiciousCheckAcrossDatesGruhaPravesam">Gruhapravesam / Housewarming Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesNilaiPadi">Nilai Padi / Main Entrance Installation Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesVehiclePurchase">Vehicle Purchase / Vehicle Purchase Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesStartBuisiness">Start Business / Commencement of Business Operations</option>
+                        <option value="runAuspiciousCheckAcrossDatesTakingMedicine">Taking Medicine / First Dose of Medical Treatment</option>
+                        <option value="runAuspiciousCheckAcrossDatesSurgery">Surgery / Surgical Procedure</option>
+                        <option value="runAuspiciousCheckAcrossDatesArogyaSnanam">Arogya Snanam / Ritual Healing Bath</option>
+                        <option value="runAuspiciousCheckAcrossDatesOilBath">Oil Bath / Oil Bath Ritual</option>
+                        <option value="runAuspiciousCheckAcrossDatesBhooPravesam">Bhoo Pravesam / Land Entry Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesCultivation">Cultivation / Commencement of Cultivation</option>
+                        <option value="runAuspiciousCheckAcrossDatesPlantingSeeds">Planting Seeds / Seed Sowing Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesCuttingGrains">Cutting Grains / Harvesting Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesLandRegistration">Land Registration / Property Registration</option>
+                        <option value="runAuspiciousCheckAcrossDatesExamFees">Exam Fees / Examination Registration</option>
                       </select>
                     </div>
                   </div>
@@ -497,7 +493,6 @@
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
   <script src="./assets/js/bootstrap.min.js"></script>
   <script src="./assets/js/main.js"></script>
-  <script src="./assets/js/auth.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
 
