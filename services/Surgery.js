@@ -84,7 +84,11 @@ function getFilteredNakshatra(startItem) {
     ];
 
     const secondNakshatraList = [
-        "Ardhra", "Ashleysha", "Jyeshtha", "Moola"
+        'Ashwini','Rohini',
+        'Mrigashira','Punarvasu', 'Pushya',
+        'Uttara Phalguni',
+        'Hasta', 'Swati','Anuradha','Moola',
+        'Uttara Ashadha', 'Shravan', 'Dhanishta','Uttara Bhadrapada', 'Revati'
     ];
     const positionsToRemove = [1, 3, 5, 7, 10, 12, 14, 16, 19, 21, 23, 25];
 
@@ -656,8 +660,8 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 
 
 
-    const disallowedwaras = [];
-    const disallowedTithis = ["Pratipada", "Dwitiya", "Tritiya", "Panchmi", "Shasthi", "Ashtami", "Dashami", "Ekadashi", "Dwadashi", "Tryodashi", "Purnima"];
+    const disallowedwaras = ["Somawara","Shaniwara"];
+    const disallowedTithis = ["Pratipada", "Chaturthi", "Shasthi", "Dashami","Chaturdashi", "Purnima","Amavasya"];
     const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
     const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 

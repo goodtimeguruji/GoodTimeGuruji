@@ -660,9 +660,9 @@ async function isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone,
 async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
 
 
-
+  // best before 12 PM on the same day, else it becomes next day chandrashtama and we have to wait for another day
   const disallowedwaras = [];
-  const disallowedTithis = ["Pratipada", "Chaturthi", "Ashtami", "Navami", "Chaturdashi", "Purnima"];
+  const disallowedTithis = ["Pratipada", "Chaturthi", "Ashtami", "Navami", "Chaturdashi", "Purnima","Amavasya"];
   const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
   const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 

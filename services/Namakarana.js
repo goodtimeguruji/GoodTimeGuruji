@@ -84,9 +84,12 @@ function getFilteredNakshatra(startItem) {
     ];
 
     const secondNakshatraList = [
-        "Ardhra", "Pushya", "Magha",
-        "Uttara Phalguni", "Hasta", "Chitra", "Swati",
-        "Anuradha", "Uttara Ashadha", "Uttara Bhadrapada"
+        'Ashwini','Rohini',
+        'Mrigashira', 'Punarvasu', 'Pushya',
+        'Magha', 'Uttara Phalguni',
+        'Hasta', 'Swati',
+        'Anuradha', 'Uttara Ashadha', 'Shravan', 'Dhanishta', 'Satabhisha',
+        'Uttara Bhadrapada'
     ];
     const positionsToRemove = [1, 3, 5, 7, 10, 12, 14, 16, 19, 21, 23, 25];
 
@@ -618,7 +621,6 @@ function removeBlockedIntervals(masterStartTime, masterEndTime, blockedIntervals
     }));
 }
 
-
 async function isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place) {
     const formData = new URLSearchParams({
         api_key: "a3a1ab378702c90ccc523c59a888f28b",
@@ -659,145 +661,145 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 
 
     const disallowedwaras = [];
-    const disallowedTithis = ["Navami"];
+    const disallowedTithis = ["Pratipada", "Chaturthi","Shasti", "Ashtami", "Navami","Dwadashi", "Chaturdashi", "Purnima","Amavasya"];
     const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
     const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 
     // ✅ check chandrashtama
-    const isChandrashtama = await isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place);
-    if (isChandrashtama) {
-        console.log("⚠️ Nakshatra under Chandrashtama. Exiting.");
+  const isChandrashtama = await isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place);
+  if (isChandrashtama) {
+    console.log("⚠️ Nakshatra under Chandrashtama. Exiting.");
+    return null;
+  }
+
+  // ✅ fetch lists in parallel
+  const [
+    nakshatraList,
+    tithiList,
+    yogaList,
+    karanaList,
+    waraList,
+    chandrabalamList,
+    tarabalamList,
+  ] = await Promise.all([
+    getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place),
+    getTithiDetailsForDate(dateStr, lat, lon, tzone, place),
+    getYogaDetailsForDate(dateStr, lat, lon, tzone, place),
+    getKaranaDetailsForDate(dateStr, lat, lon, tzone, place),
+    getWaraDetailsForDate(dateStr, lat, lon, tzone, place),
+    getChandrabalamTimings(dateStr, userRasi, lat, lon, tzone, place),
+    getTarabalamTimings(dateStr, userNakshatra, lat, lon, tzone, place),
+  ]);
+
+  console.log("Fetching nakshatra timings for:", dateStr);
+  console.log("Returned Nakshatras:", (nakshatraList || []).map(n => n.nakshatra));
+
+  // ⬇️ Allowed sets
+  const { filtered: allowedFiltered, common: allowedCommon } = getFilteredNakshatra(userNakshatra);
+
+  async function processWithAllowed(allowedNakshatras, label) {
+    console.log(`\n=== Processing for ${label} set ===`);
+
+    // ✅ safe defaults
+    const safeNakshatras = Array.isArray(nakshatraList) ? nakshatraList : [];
+    const safeTithis = Array.isArray(tithiList) ? tithiList : [];
+    const safeYogas = Array.isArray(yogaList) ? yogaList : [];
+    const safeKaranas = Array.isArray(karanaList) ? karanaList : [];
+    const safeWaras = waraList ? [waraList] : [];
+    const safeChandrabalam = Array.isArray(chandrabalamList) ? chandrabalamList : [];
+    const safeTarabalam = Array.isArray(tarabalamList) ? tarabalamList : [];
+    const safeAllowedNakshatras = Array.isArray(allowedNakshatras) ? allowedNakshatras : [];
+
+    // ✅ filters
+    const filteredNakshatras = safeNakshatras.filter(n =>
+      safeAllowedNakshatras.includes(n?.nakshatra)
+    );
+    const filteredTithis = safeTithis.filter(t => !disallowedTithis.includes(t?.tithi));
+    const filteredYogas = safeYogas.filter(y => !disallowedYogas.includes(y?.yoga));
+    const filteredKaranas = safeKaranas.filter(k => !disallowedKaranas.includes(k?.karana));
+
+    // 🛑 data guard
+    const mustHaveData = [
+      { label: "Nakshatras", list: filteredNakshatras },
+      { label: "Tithis", list: filteredTithis },
+      { label: "Yogas", list: filteredYogas },
+      { label: "Karanas", list: filteredKaranas },
+      { label: "Waras", list: safeWaras },
+      { label: "Chandrabalam", list: safeChandrabalam },
+      { label: "Tarabalam", list: safeTarabalam },
+    ];
+    for (const { label, list } of mustHaveData) {
+      if (!list || !list.length) {
+        console.log(`⚠️ Missing ${label}. Skipping this set.`);
         return null;
+      }
     }
 
-    // ✅ fetch lists in parallel
-    const [
-        nakshatraList,
-        tithiList,
-        yogaList,
-        karanaList,
-        waraList,
-        chandrabalamList,
-        tarabalamList,
-    ] = await Promise.all([
-        getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place),
-        getTithiDetailsForDate(dateStr, lat, lon, tzone, place),
-        getYogaDetailsForDate(dateStr, lat, lon, tzone, place),
-        getKaranaDetailsForDate(dateStr, lat, lon, tzone, place),
-        getWaraDetailsForDate(dateStr, lat, lon, tzone, place),
-        getChandrabalamTimings(dateStr, userRasi, lat, lon, tzone, place),
-        getTarabalamTimings(dateStr, userNakshatra, lat, lon, tzone, place),
-    ]);
+    // ✅ master time window
+    let { masterStartTime, masterEndTime } = getMasterTimeRange(safeWaras[0]);
 
-    console.log("Fetching nakshatra timings for:", dateStr);
-    console.log("Returned Nakshatras:", (nakshatraList || []).map(n => n.nakshatra));
+    const constrain = (start, end) => {
+      if (!start || !end || !masterStartTime || !masterEndTime) return;
+      const s = new Date(start), e = new Date(end);
+      if (isNaN(s) || isNaN(e)) return;
+      if (new Date(masterStartTime) < s) masterStartTime = start;
+      if (new Date(masterEndTime) > e) masterEndTime = end;
+    };
 
-    // ⬇️ Allowed sets
-    const { filtered: allowedFiltered, common: allowedCommon } = getFilteredNakshatra(userNakshatra);
+    constrain(safeChandrabalam[0].start_time, safeChandrabalam.at(-1).end_time);
+    constrain(safeTarabalam[0].start_time, safeTarabalam.at(-1).end_time);
+    constrain(filteredNakshatras[0].start_time, filteredNakshatras.at(-1).end_time);
+    constrain(filteredTithis[0].start_time, filteredTithis.at(-1).end_time);
+    constrain(filteredYogas[0].start_time, filteredYogas.at(-1).end_time);
+    constrain(filteredKaranas[0].start_time, filteredKaranas.at(-1).end_time);
 
-    async function processWithAllowed(allowedNakshatras, label) {
-        console.log(`\n=== Processing for ${label} set ===`);
-
-        // ✅ safe defaults
-        const safeNakshatras = Array.isArray(nakshatraList) ? nakshatraList : [];
-        const safeTithis = Array.isArray(tithiList) ? tithiList : [];
-        const safeYogas = Array.isArray(yogaList) ? yogaList : [];
-        const safeKaranas = Array.isArray(karanaList) ? karanaList : [];
-        const safeWaras = waraList ? [waraList] : [];
-        const safeChandrabalam = Array.isArray(chandrabalamList) ? chandrabalamList : [];
-        const safeTarabalam = Array.isArray(tarabalamList) ? tarabalamList : [];
-        const safeAllowedNakshatras = Array.isArray(allowedNakshatras) ? allowedNakshatras : [];
-
-        // ✅ filters
-        const filteredNakshatras = safeNakshatras.filter(n =>
-            safeAllowedNakshatras.includes(n?.nakshatra)
-        );
-        const filteredTithis = safeTithis.filter(t => !disallowedTithis.includes(t?.tithi));
-        const filteredYogas = safeYogas.filter(y => !disallowedYogas.includes(y?.yoga));
-        const filteredKaranas = safeKaranas.filter(k => !disallowedKaranas.includes(k?.karana));
-
-        // 🛑 data guard
-        const mustHaveData = [
-            { label: "Nakshatras", list: filteredNakshatras },
-            { label: "Tithis", list: filteredTithis },
-            { label: "Yogas", list: filteredYogas },
-            { label: "Karanas", list: filteredKaranas },
-            { label: "Waras", list: safeWaras },
-            { label: "Chandrabalam", list: safeChandrabalam },
-            { label: "Tarabalam", list: safeTarabalam },
-        ];
-        for (const { label, list } of mustHaveData) {
-            if (!list || !list.length) {
-                console.log(`⚠️ Missing ${label}. Skipping this set.`);
-                return null;
-            }
-        }
-
-        // ✅ master time window
-        let { masterStartTime, masterEndTime } = getMasterTimeRange(safeWaras[0]);
-
-        const constrain = (start, end) => {
-            if (!start || !end || !masterStartTime || !masterEndTime) return;
-            const s = new Date(start), e = new Date(end);
-            if (isNaN(s) || isNaN(e)) return;
-            if (new Date(masterStartTime) < s) masterStartTime = start;
-            if (new Date(masterEndTime) > e) masterEndTime = end;
-        };
-
-        constrain(safeChandrabalam[0].start_time, safeChandrabalam.at(-1).end_time);
-        constrain(safeTarabalam[0].start_time, safeTarabalam.at(-1).end_time);
-        constrain(filteredNakshatras[0].start_time, filteredNakshatras.at(-1).end_time);
-        constrain(filteredTithis[0].start_time, filteredTithis.at(-1).end_time);
-        constrain(filteredYogas[0].start_time, filteredYogas.at(-1).end_time);
-        constrain(filteredKaranas[0].start_time, filteredKaranas.at(-1).end_time);
-
-        if (new Date(masterStartTime) >= new Date(masterEndTime)) {
-            console.log("⚠️ Invalid master time range after constraints");
-            return null;
-        }
-
-        // ✅ remove inauspicious intervals
-        const inauspicious = await getInauspiciousTimingsForDate(dateStr, lat, lon, tzone, place);
-        const blocked = inauspicious
-            ? [inauspicious.rahu_kaal, inauspicious.yamaganda, ...(inauspicious.dur_muhurtam || [])]
-            : [];
-
-        const validIntervals = removeBlockedIntervals(masterStartTime, masterEndTime, blocked);
-
-        return {
-            label,
-            date: dateStr,
-            nakshatras: filteredNakshatras.map(n => n.nakshatra),
-            nakshatraStr: filteredNakshatras.map(n => n.nakshatra).join(", "),
-            rasi: userRasi,
-            tithis: filteredTithis.map(t => t.tithi),
-            tithiStr: filteredTithis.map(t => t.tithi).join(", "),
-            wara: safeWaras[0]?.weekday || "",
-            yogas: filteredYogas.map(y => y.yoga),
-            yogaStr: filteredYogas.map(y => y.yoga).join(", "),
-            karanas: filteredKaranas.map(k => k.karana),
-            karanaStr: filteredKaranas.map(k => k.karana).join(", "),
-            timerange: validIntervals,
-        };
+    if (new Date(masterStartTime) >= new Date(masterEndTime)) {
+      console.log("⚠️ Invalid master time range after constraints");
+      return null;
     }
 
-    // 🔥 process both sets
-    let resultFiltered = await processWithAllowed(allowedFiltered, "Filtered Only");
-    const resultCommon = await processWithAllowed(allowedCommon, "Filtered + Common");
+    // ✅ remove inauspicious intervals
+    const inauspicious = await getInauspiciousTimingsForDate(dateStr, lat, lon, tzone, place);
+    const blocked = inauspicious
+      ? [inauspicious.rahu_kaal, inauspicious.yamaganda, ...(inauspicious.dur_muhurtam || [])]
+      : [];
 
-    // ⚠️ avoid duplicate discard just by date (since always same)
-    if (resultFiltered && resultCommon) {
-        if (resultFiltered.nakshatraStr === resultCommon.nakshatraStr &&
-            resultFiltered.timerange?.toString() === resultCommon.timerange?.toString()) {
-            resultFiltered = null;
-        }
+    const validIntervals = removeBlockedIntervals(masterStartTime, masterEndTime, blocked);
+
+    return {
+      label,
+      date: dateStr,
+      nakshatras: filteredNakshatras.map(n => n.nakshatra),
+      nakshatraStr: filteredNakshatras.map(n => n.nakshatra).join(", "),
+      rasi: userRasi,
+      tithis: filteredTithis.map(t => t.tithi),
+      tithiStr: filteredTithis.map(t => t.tithi).join(", "),
+      wara: safeWaras[0]?.weekday || "",
+      yogas: filteredYogas.map(y => y.yoga),
+      yogaStr: filteredYogas.map(y => y.yoga).join(", "),
+      karanas: filteredKaranas.map(k => k.karana),
+      karanaStr: filteredKaranas.map(k => k.karana).join(", "),
+      timerange: validIntervals,
+    };
+  }
+
+  // 🔥 process both sets
+  let resultFiltered = await processWithAllowed(allowedFiltered, "Filtered Only");
+  const resultCommon = await processWithAllowed(allowedCommon, "Filtered + Common");
+
+  // ⚠️ avoid duplicate discard just by date (since always same)
+  if (resultFiltered && resultCommon) {
+    if (resultFiltered.nakshatraStr === resultCommon.nakshatraStr &&
+        resultFiltered.timerange?.toString() === resultCommon.timerange?.toString()) {
+      resultFiltered = null;
     }
+  }
 
-    return { resultFiltered, resultCommon };
+  return { resultFiltered, resultCommon };
 }
 
 
-export default async function runAuspiciousCheckAcrossDatesBhooPravesam(fromDateStr, toDateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
+export default async function runAuspiciousCheckAcrossDatesExamFees(fromDateStr, toDateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
     const resultsFiltered = [];
     const resultsCommon = [];
 

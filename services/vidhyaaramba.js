@@ -662,7 +662,7 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 
 
   const disallowedwaras = [];
-  const disallowedTithis = ["Pratipada", "Chaturthi", "Ashtami", "Navami", "Chaturdashi", "Purnima"];
+  const disallowedTithis = ["Pratipada", "Chaturthi", "Ashtami", "Navami", "Chaturdashi", "Purnima","Amavasya"];
   const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
   const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 

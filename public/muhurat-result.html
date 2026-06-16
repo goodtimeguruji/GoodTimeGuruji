@@ -136,6 +136,13 @@
           <div id="resultsContainer"></div>
 
         </div>
+        <div class="col-12 text-center">
+          <button type="submit" class="btn-submit" id="sendMailBtn">
+            <span>Send To Mail</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+
       </div>
     </div>
   </section>
@@ -202,12 +209,13 @@
               </p> -->
 
             <!-- Social Icons -->
-            <!-- <div class="footer-social">
-          <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-          <a href="#"><i class="fa-brands fa-youtube"></i></a>
-        </div> -->
+            <h5 class="footer-title mb-3">Follow Us</h5>
+            <div class="footer-social">
+              <a href="#" class="icon-facebook"><i class="bi bi-facebook "></i></a>
+              <a href="#" class="icon-instagram"><i class="bi bi-instagram "></i></a>
+              <a href="#" class="icon-twitter"><i class="bi bi-twitter-x "></i></a>
+              <a href="#" class="icon-youtube"><i class="bi bi-youtube "></i></a>
+            </div>
           </div>
         </div>
 
@@ -239,18 +247,38 @@
         return;
       }
 
-      const { filtered } = JSON.parse(storedData);
+      const {
+        filtered,
+        selectedFunction
+      } = JSON.parse(storedData);
 
       if (!filtered || filtered.length === 0) {
         container.innerHTML = "<p class='text-warning text-center'>No auspicious time found</p>";
         return;
       }
+      const varaMap = {
+        Raviwara: "Sunday",
+        Somawara: "Monday",
+        Mangalawara: "Tuesday",
+        Budhawara: "Wednesday",
+        Guruwara: "Thursday",
+        Shukrawara: "Friday",
+        Shaniwara: "Saturday"
+      };
+      function formatDate(dateStr) {
+        const [year, month, day] = dateStr.split("-");
+        return `${day}-${month}-${year}`;
+      }
 
       // ✅ Convert your API format → UI format
       function mapItem(item) {
         return {
-          date: item.date || "—",
-          day: item.wara || "—",
+          date: item.date
+            ? formatDate(item.date)
+            : "—",
+          day: item.wara
+            ? `${item.wara} (${varaMap[item.wara] || item.wara})`
+            : "—",
           nakshatra: item.nakshatraStr || "—",
           tithi: item.tithiStr || "—",
           yoga: item.yogaStr || "—",
@@ -343,20 +371,54 @@
       }
 
       // ✅ Best Time
-      container.innerHTML += createCard("Best Time", [filtered[0]]);
+      container.innerHTML += createCard(
+        `Best Time for ${selectedFunction}`,
+        [filtered[0]]
+      );
 
       // ✅ Next Best Time
-      if (filtered.length > 1) {
-        container.innerHTML += createCard(
-          "Next Best Time",
-          filtered.slice(1),
-          "secondary"
-        );
-      }
+      container.innerHTML += createCard(
+        `Next Best Time for ${selectedFunction}`,
+        filtered.slice(1),
+        "secondary"
+      );
 
     });
   </script>
+  <script>
+    document
+      .getElementById("sendMailBtn")
+      .addEventListener("click", async () => {
+
+        const storedData = JSON.parse(
+          localStorage.getItem("muhuratResults")
+        );
+
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          "/api/send-muhurat-email",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              email: localStorage.getItem("userEmail"),
+              results: storedData.filtered,
+              selectedFunction: storedData.selectedFunction
+            })
+          }
+        );
+
+        const result = await response.json();
+
+        alert(result.message);
+      });
+  </script>
 
 </body>
+
 
 </html>

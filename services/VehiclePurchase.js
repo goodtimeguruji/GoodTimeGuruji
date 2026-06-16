@@ -84,13 +84,13 @@ function getFilteredNakshatra(startItem) {
     ];
 
     const secondNakshatraList = [
-        "Ashwini", "Rohini", "Mrigashira",
-        "Punarvasu", "Magha",
-        "Uttara Phalguni", "Hasta", "Chitra", "Swati",
-        "Anuradha", "Uttara Ashadha", "Shravan",
-        "Uttara Bhadrapada", "Revati"
-
+        'Ashwini','Rohini',
+        'Mrigashira','Punarvasu', 'Pushya',
+        'Uttara Phalguni',
+        'Hasta', 'Swati','Anuradha',
+        'Uttara Ashadha', 'Shravan','Uttara Bhadrapada', 'Revati'
     ];
+
     const positionsToRemove = [1, 3, 5, 7, 10, 12, 14, 16, 19, 21, 23, 25];
 
     const startIndex = nakshatraList.indexOf(startItem);
@@ -660,9 +660,9 @@ async function isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone,
 async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
 
 
-
+    // gulikan time is ok 
     const disallowedwaras = ["Mangalawara", "Shaniwara"];
-    const disallowedTithis = ["Pratipada", "Chaturthi", "Shasthi", "Ashtami", "Navami", "Dashami", "Dwadashi", "Tryodashi", "Chaturdashi"];
+    const disallowedTithis = ["Pratipada", "Chaturthi", "Shasthi", "Ashtami", "Navami", "Dashami", "Dwadashi", "Tryodashi", "Chaturdashi","Amavasya"];
     const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
     const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 

@@ -658,9 +658,10 @@ async function isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone,
 async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
 
 
-
+  // mesha ,  simha , kanya , tula ,  dhanu , meena
+  //8th planet position empty
   const disallowedwaras = [];
-  const disallowedTithis = ["Pratipada", "Chaturthi", "Ashtami", "Navami", "Ekadashi", "Chaturdashi", "Purnima"];
+  const disallowedTithis = ["Pratipada", "Chaturthi", "Ashtami", "Navami", "Ekadashi", "Chaturdashi", "Purnima","Amavasya"];
   const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
   const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 

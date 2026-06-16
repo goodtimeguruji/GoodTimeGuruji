@@ -87,7 +87,7 @@ function getFilteredNakshatra(startItem) {
         "Ashwini", "Rohini", "Mrigashira",
         "Punarvasu", "Pushya", "Magha",
         "Uttara Phalguni", "Hasta", "Swati",
-        "Vishakha", "Anuradha", "Uttara Ashadha", "Shravan", "Dhanishta", "Satabhisha",
+        "Vishakha", "Anuradha",'Moola',"Uttara Ashadha", "Shravan", "Dhanishta", "Satabhisha",
         "Uttara Bhadrapada", "Revati"
 
     ];
@@ -662,7 +662,7 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 
 
     const disallowedwaras = [];
-    const disallowedTithis = ["Chaturthi", "Navami", "Saptami", "Dwadashi", "Chaturdashi", "Purnima"];
+    const disallowedTithis = ["Chaturthi", "Navami", "Saptami", "Dwadashi", "Chaturdashi", "Purnima","Amavasya"];
     const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
     const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 
