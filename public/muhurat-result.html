@@ -405,7 +405,6 @@
               Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
-              email: localStorage.getItem("userEmail"),
               results: storedData.filtered,
               selectedFunction: storedData.selectedFunction
             })

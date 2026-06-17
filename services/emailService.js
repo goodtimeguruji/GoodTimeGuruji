@@ -2,8 +2,9 @@ import nodemailer from "nodemailer";
 
 export const sendMuhuratEmail = async (req, res) => {
     try {
-        const { email, results, selectedFunction } = req.body;
-
+        const { results, selectedFunction } = req.body;
+            const email = req.user.email;
+            console.log("Sending email to:", email);
         const transporter = nodemailer.createTransport({
             host: "smtp.hostinger.com",
             port: 465,
