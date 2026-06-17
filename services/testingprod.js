@@ -788,12 +788,27 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
     const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
     const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 
-   // ✅ check chandrashtama
+    const waraList = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
+  const currentWeekday = waraList?.weekday;
+
+  if (
+    isNakshatraMarkedM(
+      currentWeekday,
+      userNakshatra
+    )
+  ) {
+    return null;
+  }
+
+
+  // ✅ check chandrashtama
   const isChandrashtama = await isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place);
   if (isChandrashtama) {
     console.log("⚠️ Nakshatra under Chandrashtama. Exiting.");
     return null;
   }
+
+
 
   // ✅ fetch lists in parallel
   const [
@@ -801,18 +816,52 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
     tithiList,
     yogaList,
     karanaList,
-    waraList,
-    chandrabalamList,
-    tarabalamList,
+    balam
   ] = await Promise.all([
-    getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place),
-    getTithiDetailsForDate(dateStr, lat, lon, tzone, place),
-    getYogaDetailsForDate(dateStr, lat, lon, tzone, place),
-    getKaranaDetailsForDate(dateStr, lat, lon, tzone, place),
-    getWaraDetailsForDate(dateStr, lat, lon, tzone, place),
-    getChandrabalamTimings(dateStr, userRasi, lat, lon, tzone, place),
-    getTarabalamTimings(dateStr, userNakshatra, lat, lon, tzone, place),
+    getNakshatraTimingsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getTithiDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getYogaDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getKaranaDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getBalamTimings(
+      dateStr,
+      userNakshatra,
+      userRasi,
+      lat,
+      lon,
+      tzone,
+      place
+    )
   ]);
+
+  const chandrabalamList =
+    balam.chandrabalam;
+
+  const tarabalamList =
+    balam.tarabalam;
 
   console.log("Fetching nakshatra timings for:", dateStr);
   console.log("Returned Nakshatras:", (nakshatraList || []).map(n => n.nakshatra));
@@ -948,40 +997,71 @@ export default async function runAuspiciousCheckAcrossDatesProdtest(fromDateStr,
     if (chunkEnd > toDate) chunkEnd.setTime(toDate.getTime());
 
     // Inner loop for daily iteration
-    let day = new Date(chunkStart);
-    while (day <= chunkEnd) {
-      const yyyy = day.getFullYear();
-      const mm = String(day.getMonth() + 1).padStart(2, "0");
-      const dd = String(day.getDate()).padStart(2, "0");
-      const currentDateStr = `${yyyy}-${mm}-${dd}`;
+    const CONCURRENCY = 10;
 
-      const { resultFiltered, resultCommon } = await getAuspiciousTimeWindow(
-        currentDateStr,
-        userNakshatra,
-        userRasi,
-        lat,
-        lon,
-        tzone,
-        place
-      );
+// Build all dates in this month chunk
+const dates = [];
 
-      if (resultFiltered) {
-        resultsFiltered.push({
+let day = new Date(chunkStart);
+
+while (day <= chunkEnd) {
+  dates.push(
+    `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`
+  );
+
+  day.setDate(day.getDate() + 1);
+}
+
+// Process dates in parallel batches
+for (let i = 0; i < dates.length; i += CONCURRENCY) {
+  const batch = dates.slice(i, i + CONCURRENCY);
+
+  const batchResults = await Promise.all(
+    batch.map(async (currentDateStr) => {
+      try {
+        const result = await getAuspiciousTimeWindow(
+          currentDateStr,
+          userNakshatra,
+          userRasi,
+          lat,
+          lon,
+          tzone,
+          place
+        );
+
+        return {
           date: currentDateStr,
-          ...resultFiltered, // spread so frontend gets nakshatra, tithi, yoga, timerange directly
-        });
-      }
+          ...result
+        };
+      } catch (err) {
+        console.error(
+          `Error processing ${currentDateStr}`,
+          err
+        );
 
-      if (resultCommon) {
-        resultsCommon.push({
-          date: currentDateStr,
-          ...resultCommon,
-        });
+        return null;
       }
+    })
+  );
 
-      // Move to next day
-      day.setDate(day.getDate() + 1);
+  for (const item of batchResults) {
+    if (!item) continue;
+
+    if (item.resultFiltered) {
+      resultsFiltered.push({
+        date: item.date,
+        ...item.resultFiltered
+      });
     }
+
+    if (item.resultCommon) {
+      resultsCommon.push({
+        date: item.date,
+        ...item.resultCommon
+      });
+    }
+  }
+}
 
     // Move to next month
     current = new Date(chunkEnd);

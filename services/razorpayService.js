@@ -3,8 +3,8 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
 
-console.log("KEY_ID =", process.env.RAZORPAY_KEY_ID);
-console.log("KEY_SECRET =", process.env.RAZORPAY_KEY_SECRET);
+//console.log("KEY_ID =", process.env.RAZORPAY_KEY_ID);
+//console.log("KEY_SECRET =", process.env.RAZORPAY_KEY_SECRET);
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -13,17 +13,13 @@ const razorpay = new Razorpay({
 
 export const createOrder = async (req, res) => {
   try {
-    const {
-      amount,
-      currency = "INR",
-      receipt
-    } = req.body;
 
-    if (!amount || amount < 100) {
-      return res.status(400).json({
-        error: "Amount must be at least 100 paise"
-      });
-    }
+    const { currency = "INR", receipt } = req.body;
+
+    const amount =
+      currency === "USD"
+        ? 800      // $8.00
+        : 50000;   // ₹500.00
 
     const order = await razorpay.orders.create({
       amount,
@@ -34,17 +30,12 @@ export const createOrder = async (req, res) => {
     return res.json({
       order_id: order.id,
       amount: order.amount,
-      currency: order.currency
+      currency: order.currency,
+      keyId: process.env.RAZORPAY_KEY_ID
     });
 
   } catch (error) {
     console.error("Create Order Error:", error);
-
-    if (error.statusCode === 401) {
-      return res.status(401).json({
-        error: "Razorpay authentication failed"
-      });
-    }
 
     return res.status(500).json({
       error: "Failed to create order"

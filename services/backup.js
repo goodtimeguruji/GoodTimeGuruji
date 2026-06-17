@@ -660,6 +660,19 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
   const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
   const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 
+   const waraList = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
+  const currentWeekday = waraList?.weekday;
+
+  if (
+    isNakshatraMarkedM(
+      currentWeekday,
+      userNakshatra
+    )
+  ) {
+    return null;
+  }
+
+
   // ✅ check chandrashtama
   const isChandrashtama = await isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place);
   if (isChandrashtama) {
@@ -667,24 +680,60 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
     return null;
   }
 
+
+
   // ✅ fetch lists in parallel
   const [
     nakshatraList,
     tithiList,
     yogaList,
     karanaList,
-    waraList,
-    chandrabalamList,
-    tarabalamList,
+    balam
   ] = await Promise.all([
-    getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place),
-    getTithiDetailsForDate(dateStr, lat, lon, tzone, place),
-    getYogaDetailsForDate(dateStr, lat, lon, tzone, place),
-    getKaranaDetailsForDate(dateStr, lat, lon, tzone, place),
-    getWaraDetailsForDate(dateStr, lat, lon, tzone, place),
-    getChandrabalamTimings(dateStr, userRasi, lat, lon, tzone, place),
-    getTarabalamTimings(dateStr, userNakshatra, lat, lon, tzone, place),
+    getNakshatraTimingsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getTithiDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getYogaDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getKaranaDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getBalamTimings(
+      dateStr,
+      userNakshatra,
+      userRasi,
+      lat,
+      lon,
+      tzone,
+      place
+    )
   ]);
+
+  const chandrabalamList =
+    balam.chandrabalam;
+
+  const tarabalamList =
+    balam.tarabalam;
 
   console.log("Fetching nakshatra timings for:", dateStr);
   console.log("Returned Nakshatras:", (nakshatraList || []).map(n => n.nakshatra));

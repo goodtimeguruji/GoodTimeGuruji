@@ -362,173 +362,212 @@ function getMasterTimeRange(filteredWara) {
     };
 }
 
-async function getTarabalamTimings(dateStr, nakshatra, lat, lon, tzone, place) {
-    const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
-    const authToken = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpdmluZWFwaS5jb20vcmVnZW5lcmF0ZS1hcGkta2V5cyIsImlhdCI6MTc0ODA5NTgzOSwibmJmIjoxNzQ4MDk1ODM5LCJqdGkiOiI3OFNZRjI2aThSYk9JT1hoIiwic3ViIjoiMzY0NiIsInBydiI6ImU2ZTY0YmIwYjYxMjZkNzNjNmI5N2FmYzNiNDY0ZDk4NWY0NmM5ZDcifQ.2rq14SoOpQocVpJmISJeB2amXpudBPHGHdhR123zPrc"; // Replace with actual token
-    const lang = "en";
+function getBalamWindow({
+  values,
+  target,
+  upto,
+  dateStr,
+  key
+}) {
+  const { current = [], next = [] } = values;
 
-    // Mapping from Nakshatra list → Tarabalam list
-    const nakshatraToTarabalamMap = {
-        "Ashleysha": "Ashlesha",
-        "Poorva Ashadha": "Purva Ashada",
-        "Uttara Ashadha": "Uttara Ashada"
-    };
+  const dayStart = `${dateStr}T00:00:00`;
+  const dayEnd = `${dateStr}T23:59:59`;
 
-    // Normalizer to ensure spelling matches Tarabalam list
-    const normalize = (name) => nakshatraToTarabalamMap[name] || name;
+  if (!upto) {
+    return current.includes(target)
+      ? [{
+        date: dateStr,
+        [key]: target,
+        start_time: dayStart,
+        end_time: dayEnd
+      }]
+      : null;
+  }
 
-    const date = new Date(dateStr);
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
-    const baseDateStr = `${yyyy}-${mm}-${dd}`;
-    const dayStart = `${baseDateStr}T00:00:00`;
-    const dayEnd = `${baseDateStr}T23:59:59`;
+  const [timePart, datePart] = upto.split(", ");
+  const [monthStr, dayStr] = datePart.trim().split(" ");
 
-    const formData = new URLSearchParams({
-        api_key: apiKey,
-        day: dd,
-        month: mm,
-        year: yyyy,
-        Place: place,
-        lat,
-        lon,
-        tzone,
-        lan: lang
-    });
+  const months = {
+    Jan: 0,
+    Feb: 1,
+    Mar: 2,
+    Apr: 3,
+    May: 4,
+    Jun: 5,
+    Jul: 6,
+    Aug: 7,
+    Sep: 8,
+    Oct: 9,
+    Nov: 10,
+    Dec: 11
+  };
 
-    const response = await fetch(
-        "https://astroapi-2.divineapi.com/indian-api/v2/find-chandrabalam-and-tarabalam",
-        {
-            method: "POST",
-            headers: {
-                "Authorization": authToken,
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: formData.toString()
-        }
-    );
+  const year = new Date(dateStr).getFullYear();
 
-    const json = await response.json();
-    const tarabalam = json?.data?.tarabalams;
-    if (!tarabalam) return null;
+  const uptoDate = new Date(
+    year,
+    months[monthStr],
+    parseInt(dayStr)
+  );
 
-    let { current = [], next = [], upto = "" } = tarabalam;
+  const currentDate = new Date(dateStr);
 
-    // Normalize API results & input nakshatra to Tarabalam spellings
-    current = current.map(normalize);
-    next = next.map(normalize);
-    nakshatra = normalize(nakshatra);
+  if (
+    uptoDate > currentDate &&
+    current.includes(target)
+  ) {
+    return [{
+      date: dateStr,
+      [key]: target,
+      start_time: dayStart,
+      end_time: dayEnd
+    }];
+  }
 
-    // Early return if no time split info
-    if (!upto) {
-        return current.includes(nakshatra)
-            ? [{ date: baseDateStr, nakshatra, start_time: dayStart, end_time: dayEnd }]
-            : null;
-    }
+  const [hhmm, ampm] = timePart.trim().split(" ");
 
-    const [timePart, datePart] = upto.split(", ");
-    const [monthStr, dayStr] = datePart.trim().split(" ");
-    const months = {
-        Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-        Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-    };
+  let [hour, minute] = hhmm.split(":").map(Number);
 
-    const uptoDate = new Date(yyyy, months[monthStr], parseInt(dayStr));
-    const userDate = new Date(baseDateStr);
+  if (ampm === "PM" && hour !== 12) hour += 12;
+  if (ampm === "AM" && hour === 12) hour = 0;
 
-    // If Tarabalam extends beyond today, return full day if applicable
-    if (uptoDate > userDate && current.includes(nakshatra)) {
-        return [{ date: baseDateStr, nakshatra, start_time: dayStart, end_time: dayEnd }];
-    }
+  const cutoff =
+    `${dateStr}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
 
-    // Parse time split
-    const [hhmm, ampm] = timePart.trim().split(" ");
-    let [hour, minute] = hhmm.split(":").map(Number);
-    if (ampm === "PM" && hour !== 12) hour += 12;
-    if (ampm === "AM" && hour === 12) hour = 0;
+  const inCurrent = current.includes(target);
+  const inNext = next.includes(target);
 
-    const uptoTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
-    const uptoDateTime = `${baseDateStr}T${uptoTime}`;
+  if (inCurrent && inNext) {
+    return [{
+      date: dateStr,
+      [key]: target,
+      start_time: dayStart,
+      end_time: dayEnd
+    }];
+  }
 
-    if (current.includes(nakshatra) && next.includes(nakshatra)) {
-        return [{ date: baseDateStr, nakshatra, start_time: dayStart, end_time: dayEnd }];
-    }
+  if (inCurrent) {
+    return [{
+      date: dateStr,
+      [key]: target,
+      start_time: dayStart,
+      end_time: cutoff
+    }];
+  }
 
-    if (current.includes(nakshatra)) {
-        return [{ date: baseDateStr, nakshatra, start_time: dayStart, end_time: uptoDateTime }];
-    }
+  if (inNext) {
+    return [{
+      date: dateStr,
+      [key]: target,
+      start_time: cutoff,
+      end_time: dayEnd
+    }];
+  }
 
-    if (next.includes(nakshatra)) {
-        return [{ date: baseDateStr, nakshatra, start_time: uptoDateTime, end_time: dayEnd }];
-    }
-
-    return null;
+  return null;
 }
 
-async function getChandrabalamTimings(dateStr, rasi, lat, lon, tzone, place) {
-    const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
-    const authToken = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpdmluZWFwaS5jb20vcmVnZW5lcmF0ZS1hcGkta2V5cyIsImlhdCI6MTc0ODA5NTgzOSwibmJmIjoxNzQ4MDk1ODM5LCJqdGkiOiI3OFNZRjI2aThSYk9JT1hoIiwic3ViIjoiMzY0NiIsInBydiI6ImU2ZTY0YmIwYjYxMjZkNzNjNmI5N2FmYzNiNDY0ZDk4NWY0NmM5ZDcifQ.2rq14SoOpQocVpJmISJeB2amXpudBPHGHdhR123zPrc"; // Replace with valid token
+async function getBalamTimings(
+  dateStr,
+  userNakshatra,
+  userRasi,
+  lat,
+  lon,
+  tzone,
+  place
+) {
+  const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
 
-    const lang = "en";
+  const authToken =
+    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpdmluZWFwaS5jb20vcmVnZW5lcmF0ZS1hcGkta2V5cyIsImlhdCI6MTc0ODA5NTgzOSwibmJmIjoxNzQ4MDk1ODM5LCJqdGkiOiI3OFNZRjI2aThSYk9JT1hoIiwic3ViIjoiMzY0NiIsInBydiI6ImU2ZTY0YmIwYjYxMjZkNzNjNmI5N2FmYzNiNDY0ZDk4NWY0NmM5ZDcifQ.2rq14SoOpQocVpJmISJeB2amXpudBPHGHdhR123zPrc";
 
-    const formData = new URLSearchParams({
-        api_key: "a3a1ab378702c90ccc523c59a888f28b",
-        day: dateStr.split("-")[2],
-        month: dateStr.split("-")[1],
-        year: dateStr.split("-")[0],
-        Place: place,
-        lat,
-        lon,
-        tzone,
-        lan: "en"
+  const nakshatraMap = {
+    Ashleysha: "Ashlesha",
+    "Poorva Ashadha": "Purva Ashada",
+    "Uttara Ashadha": "Uttara Ashada"
+  };
+
+  const normalize = name =>
+    nakshatraMap[name] || name;
+
+  const [yyyy, mm, dd] =
+    dateStr.split("-");
+
+  const formData =
+    new URLSearchParams({
+      api_key: apiKey,
+      day: dd,
+      month: mm,
+      year: yyyy,
+      Place: place,
+      lat,
+      lon,
+      tzone,
+      lan: "en"
     });
 
-    const response = await fetch("https://astroapi-2.divineapi.com/indian-api/v1/find-chandrabalam-and-tarabalam", {
-        method: "POST",
-        headers: {
-            "Authorization": authToken,
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: formData.toString()
-    });
-
-    const json = await response.json();
-    const cb = json?.data?.chandrabalams;
-    if (!cb) return null;
-
-    const { current = [], next = [], upto = "" } = cb;
-    const dayStart = `${dateStr}T00:00:00`;
-    const dayEnd = `${dateStr}T23:59:59`;
-
-    if (!upto) return current.includes(rasi) ? [{ date: dateStr, rasi, start_time: dayStart, end_time: dayEnd }] : null;
-
-    const [timePart, datePart] = upto.split(", ");
-    const [monthStr, dayStr] = datePart.trim().split(" ");
-    const months = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
-
-    const uptoDate = new Date(new Date(dateStr).getFullYear(), months[monthStr], parseInt(dayStr));
-    const currentDate = new Date(dateStr);
-
-    if (uptoDate > currentDate && current.includes(rasi)) {
-        return [{ date: dateStr, rasi, start_time: dayStart, end_time: dayEnd }];
+  const response = await fetch(
+    "https://astroapi-2.divineapi.com/indian-api/v2/find-chandrabalam-and-tarabalam",
+    {
+      method: "POST",
+      headers: {
+        Authorization: authToken,
+        "Content-Type":
+          "application/x-www-form-urlencoded"
+      },
+      body: formData.toString()
     }
+  );
 
-    const [hhmm, ampm] = timePart.split(" ");
-    let [hr, min] = hhmm.split(":").map(Number);
-    if (ampm === "PM" && hr !== 12) hr += 12;
-    if (ampm === "AM" && hr === 12) hr = 0;
+  const json = await response.json();
 
-    const cutoffTime = `${String(hr).padStart(2, "0")}:${String(min).padStart(2, "0")}:00`;
-    const cutoff = `${dateStr}T${cutoffTime}`;
+  const tarabalamData =
+    json?.data?.tarabalams;
 
-    const inCurrent = current.includes(rasi);
-    const inNext = next.includes(rasi);
+  const chandrabalamData =
+    json?.data?.chandrabalams;
 
-    if (inCurrent && inNext) return [{ date: dateStr, rasi, start_time: dayStart, end_time: dayEnd }];
-    if (inCurrent) return [{ date: dateStr, rasi, start_time: dayStart, end_time: cutoff }];
-    if (inNext) return [{ date: dateStr, rasi, start_time: cutoff, end_time: dayEnd }];
-    return null;
+  if (
+    !tarabalamData ||
+    !chandrabalamData
+  ) {
+    return {
+      chandrabalam: [],
+      tarabalam: []
+    };
+  }
+
+  tarabalamData.current =
+    (tarabalamData.current || [])
+      .map(normalize);
+
+  tarabalamData.next =
+    (tarabalamData.next || [])
+      .map(normalize);
+
+  userNakshatra =
+    normalize(userNakshatra);
+
+  return {
+    chandrabalam:
+      getBalamWindow({
+        values: chandrabalamData,
+        target: userRasi,
+        upto: chandrabalamData.upto,
+        dateStr,
+        key: "rasi"
+      }) || [],
+
+    tarabalam:
+      getBalamWindow({
+        values: tarabalamData,
+        target: userNakshatra,
+        upto: tarabalamData.upto,
+        dateStr,
+        key: "nakshatra"
+      }) || []
+  };
 }
 
 function convert12hTo24h(time12h) {
@@ -665,12 +704,27 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
     const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
     const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
 
-    // ✅ check chandrashtama
+     const waraList = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
+  const currentWeekday = waraList?.weekday;
+
+  if (
+    isNakshatraMarkedM(
+      currentWeekday,
+      userNakshatra
+    )
+  ) {
+    return null;
+  }
+
+
+  // ✅ check chandrashtama
   const isChandrashtama = await isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place);
   if (isChandrashtama) {
     console.log("⚠️ Nakshatra under Chandrashtama. Exiting.");
     return null;
   }
+
+
 
   // ✅ fetch lists in parallel
   const [
@@ -678,18 +732,52 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
     tithiList,
     yogaList,
     karanaList,
-    waraList,
-    chandrabalamList,
-    tarabalamList,
+    balam
   ] = await Promise.all([
-    getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place),
-    getTithiDetailsForDate(dateStr, lat, lon, tzone, place),
-    getYogaDetailsForDate(dateStr, lat, lon, tzone, place),
-    getKaranaDetailsForDate(dateStr, lat, lon, tzone, place),
-    getWaraDetailsForDate(dateStr, lat, lon, tzone, place),
-    getChandrabalamTimings(dateStr, userRasi, lat, lon, tzone, place),
-    getTarabalamTimings(dateStr, userNakshatra, lat, lon, tzone, place),
+    getNakshatraTimingsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getTithiDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getYogaDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getKaranaDetailsForDate(
+      dateStr,
+      lat,
+      lon,
+      tzone,
+      place
+    ),
+    getBalamTimings(
+      dateStr,
+      userNakshatra,
+      userRasi,
+      lat,
+      lon,
+      tzone,
+      place
+    )
   ]);
+
+  const chandrabalamList =
+    balam.chandrabalam;
+
+  const tarabalamList =
+    balam.tarabalam;
 
   console.log("Fetching nakshatra timings for:", dateStr);
   console.log("Returned Nakshatras:", (nakshatraList || []).map(n => n.nakshatra));
