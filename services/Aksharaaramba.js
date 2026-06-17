@@ -62,6 +62,70 @@ function isNakshatraMarkedM(weekday, nakshatra) {
   );
 }
 
+const NAKSHATRA_WEEKDAY_RULES = {
+  Raviwara: {
+    Magha: "M",
+    Vishakha: "M",
+    Anuradha: "M",
+    Jyeshtha: "M",
+    Dhanishta: "M"
+  },
+
+  Somawara: {
+    Krittika: "M",
+    Magha: "M",
+    Vishakha: "M",
+    "Uttara Ashadha": "M",
+    "Poorva Bhadrapada": "M"
+  },
+
+  Mangalawara: {
+    Ardhra: "M",
+    Vishakha: "M",
+    Satabhisha: "M",
+    "Poorva Bhadrapada": "M"
+  },
+
+  Budhawara: {
+    Ashwini: "M",
+    Hasta: "M",
+    Moola: "M",
+    Dhanishta: "M",
+    Revati: "M"
+  },
+
+  Guruwara: {
+    Krittika: "M",
+    Rohini: "M",
+    Mrigashira: "M",
+    Ardhra: "M",
+    "Uttara Phalguni": "M",
+    Satabhisha: "M"
+  },
+
+  Shukrawara: {
+    Rohini: "M",
+    Ashleysha: "M",
+    Magha: "M",
+    Jyeshtha: "M"
+  },
+
+  Shaniwara: {
+    Ashleysha: "M",
+    "Uttara Phalguni": "M",
+    Hasta: "M",
+    Chitra: "M",
+    "Poorva Bhadrapada": "M",
+    Revati: "M"
+  }
+};
+
+function isNakshatraMarkedM(weekday, nakshatra) {
+  return (
+    NAKSHATRA_WEEKDAY_RULES[weekday]?.[nakshatra] === "M"
+  );
+}
+
 async function getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place) {
   const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
   const authToken = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpdmluZWFwaS5jb20vcmVnZW5lcmF0ZS1hcGkta2V5cyIsImlhdCI6MTc0ODA5NTgzOSwibmJmIjoxNzQ4MDk1ODM5LCJqdGkiOiI3OFNZRjI2aThSYk9JT1hoIiwic3ViIjoiMzY0NiIsInBydiI6ImU2ZTY0YmIwYjYxMjZkNzNjNmI5N2FmYzNiNDY0ZDk4NWY0NmM5ZDcifQ.2rq14SoOpQocVpJmISJeB2amXpudBPHGHdhR123zPrc";
