@@ -49,6 +49,7 @@ import { sendContactUsEmail } from "./services/contactusemail.js";
 import authRoutes from "./services/authRoutes.js";
 import {createOrder,verifyPayment} from "./services/razorpayService.js";
 import { sendMuhuratEmail } from "./services/emailService.js";
+import { notifyPaymentApiFailure } from "./services/paymentFailureEmail.js";
 
 const app = express();
 
@@ -172,6 +173,8 @@ app.post("/api/create-order", createOrder);
 app.post("/api/verify-payment", verifyPayment);
 app.post("/api/send-muhurat-email", verifyToken, sendMuhuratEmail);
 app.post("/api/contact-us", sendContactUsEmail);
+app.post("/api/payment-api-failure",verifyToken,notifyPaymentApiFailure);
+
 
 // 🛡️ Centralized Error Handler
 app.use((err, req, res, next) => {

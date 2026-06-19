@@ -774,7 +774,6 @@ support@goodtimeguruji.in">
               const verifyResult = await verifyRes.json();
               if (!verifyResult.success) {
                 alert("Payment verification failed");
-
                 resetButton();
                 return;
               }
@@ -784,8 +783,61 @@ support@goodtimeguruji.in">
               try {
                 await fetchMuhuratResult();
               } catch (err) {
+
                 hideLoadingModal();
-                throw err;
+                try {
+                  await fetch(`${API_BASE_URL}/api/payment-api-failure`, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization:
+                        `Bearer ${localStorage.getItem("token")}`
+                    },
+                    body: JSON.stringify({
+                      razorpay_payment_id:
+                        response.razorpay_payment_id,
+
+                      razorpay_order_id:
+                        response.razorpay_order_id,
+
+                      service:
+                        document.getElementById("functionService")
+                          .options[
+                          document.getElementById("functionService")
+                            .selectedIndex
+                        ].text,
+
+                      location:
+                        document.getElementById("locationInput").value,
+
+                      lat:
+                        document.getElementById("lat").value,
+
+                      lon:
+                        document.getElementById("lon").value,
+
+                      timezone:
+                        document.getElementById("timezone").value,
+
+                      nakshatra:
+                        document.getElementById("nakshatram").value,
+
+                      rasi:
+                        document.getElementById("rasi").value,
+
+                      fromDate:
+                        document.getElementById("fromDate").value,
+
+                      toDate:
+                        document.getElementById("toDate").value
+                    })
+                  });
+                }
+                catch (mailErr) {
+                  console.error("Failure notification email failed:", mailErr);
+                }
+                alert("Your payment was successful. Due to a temporary technical issue we could not generate your Muhurat report immediately. Our team has been notified and the report will be sent to your registered email address. If the report is not received within 1-2 business days, a refund will be processed.");
+                window.location.href = "index.html";
               }
 
             } catch (err) {
