@@ -45,6 +45,7 @@ import runAuspiciousCheckAcrossDatesLandRegistration from "./services/LandRegist
 import runAuspiciousCheckAcrossDatesExamFees from "./services/ExamFees.js";
 import runAuspiciousCheckAcrossDatesNamakarana from "./services/Namakarana.js";
 import runAuspiciousCheckAcrossDatesShantimuhurtam from "./services/Shantimuhurtam.js";
+import { sendContactUsEmail } from "./services/contactusemail.js";
 import authRoutes from "./services/authRoutes.js";
 import {createOrder,verifyPayment} from "./services/razorpayService.js";
 import { sendMuhuratEmail } from "./services/emailService.js";
@@ -170,6 +171,7 @@ setupRoute("/runAuspiciousCheckAcrossDatesShantimuhurtam", runAuspiciousCheckAcr
 app.post("/api/create-order", createOrder);
 app.post("/api/verify-payment", verifyPayment);
 app.post("/api/send-muhurat-email", verifyToken, sendMuhuratEmail);
+app.post("/api/contact-us", sendContactUsEmail);
 
 // 🛡️ Centralized Error Handler
 app.use((err, req, res, next) => {
