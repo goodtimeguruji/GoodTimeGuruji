@@ -220,21 +220,35 @@
       box.innerHTML = "Searching...";
 
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-        const places = await res.json();
+        const apiKey = "28c4501555ee44698a1510d3b1a41dce";
+
+        const res = await fetch(
+          `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=10&format=json&apiKey=${apiKey}`
+        );
+
+        const data = await res.json();
+        const places = data.results || [];
 
         if (!places.length) {
-          box.innerHTML = "<div class='suggestion-item'>No results found</div>";
+          box.innerHTML =
+            "<div class='suggestion-item'>No results found</div>";
           return;
         }
 
         window.locationResults = places;
+
         box.innerHTML = "";
 
         places.forEach((place, index) => {
           const div = document.createElement("div");
+
           div.className = "suggestion-item";
-          div.textContent = place.display_name;
+
+          div.textContent =
+            place.formatted ||
+            place.city ||
+            place.address_line1 ||
+            "Unknown Location";
 
           div.onclick = () => selectLocation(index);
 
@@ -242,17 +256,38 @@
         });
 
       } catch (err) {
-        box.innerHTML = "<div class='suggestion-item'>Error fetching locations</div>";
+        console.error(err);
+
+        box.innerHTML =
+          "<div class='suggestion-item'>Error fetching locations</div>";
       }
     }
 
     function selectLocation(index) {
       const place = window.locationResults[index];
 
-      document.getElementById("locationInput").value = place.display_name;
-      document.getElementById("lat").value = place.lat;
-      document.getElementById("lon").value = place.lon;
-      document.getElementById("timezone").value = "5.5";
+      document.getElementById("locationInput").value =
+        place.formatted;
+
+      document.getElementById("lat").value =
+        place.lat;
+
+      document.getElementById("lon").value =
+        place.lon;
+
+      // Convert seconds to hours
+      const timezoneOffset =
+        (place.timezone?.offset_STD_seconds || 0) / 3600;
+
+      document.getElementById("timezone").value =
+        timezoneOffset;
+
+      console.log("Selected Location:", {
+        place: place.formatted,
+        lat: place.lat,
+        lon: place.lon,
+        timezone: timezoneOffset
+      });
 
       document.getElementById("suggestions").innerHTML = "";
     }

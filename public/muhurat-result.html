@@ -420,6 +420,13 @@ support@goodtimeguruji.in</a>
   </script>
 
 </body>
+<script>
+history.pushState(null, null, location.href);
+
+window.addEventListener("popstate", function () {
+    window.location.replace("index.html");
+});
+</script>
 
 
 </html>

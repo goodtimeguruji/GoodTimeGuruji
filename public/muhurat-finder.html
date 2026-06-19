@@ -159,7 +159,7 @@
                     </div>
                     <div class="col-md-8">
                       <div style="position: relative;">
-                        <input type="text" id="location" class="form-control af-input af-box"
+                        <input type="text" id="locationInput" class="form-control af-input af-box"
                           placeholder="Enter Your Location" autocomplete="off" required />
 
                         <!-- Suggestions -->
@@ -289,6 +289,9 @@
                         <option value="runAuspiciousCheckAcrossDatesLandRegistration">Land Registration / Property
                           Registration</option>
 
+                        <option value="runAuspiciousCheckAcrossDatesNamakarana">Namakarana / Naming Ceremony of Baby
+                        </option>
+
                         <option value="runAuspiciousCheckAcrossDatesNewPortfolio">New Portfolio / New Investment
                           Portfolio</option>
 
@@ -301,6 +304,10 @@
                         </option>
 
                         <option value="runAuspiciousCheckAcrossDatesPumsuvanam">Pumsavana / Prenatal Ritual Ceremony
+                        </option>
+
+                        <option value="runAuspiciousCheckAcrossDatesShantimuhurtam">Shanti Muhurtam / Auspicious
+                          Ceremony
                         </option>
 
                         <option value="runAuspiciousCheckAcrossDatesStartBuisiness">Start Business / Commencement of
@@ -533,7 +540,7 @@
               <i class="fa fa-envelope me-2"></i>
               <a href="mailto:
 support@goodtimeguruji.in">
-support@goodtimeguruji.in</a>
+                support@goodtimeguruji.in</a>
             </p>
             <!-- <p class="footer-text mb-3">
                 <i class="fa fa-map me-2"></i>
@@ -568,6 +575,27 @@ support@goodtimeguruji.in</a>
   <script src="./assets/js/bootstrap.min.js"></script>
   <script src="./assets/js/main.js"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const btnText = document.getElementById("btnText");
+
+      try {
+        const geoRes = await fetch("https://ipapi.co/json/");
+        const geoData = await geoRes.json();
+
+        if (geoData.country_code === "IN") {
+          btnText.textContent = "Proceed to Pay ₹500";
+        } else {
+          btnText.textContent = "Proceed to Pay $8";
+        }
+      } catch (err) {
+        console.error("Country detection failed:", err);
+
+        // fallback
+        btnText.textContent = "Proceed to Pay ₹500";
+      }
+    });
+  </script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
 
@@ -697,6 +725,7 @@ support@goodtimeguruji.in</a>
         } catch (err) {
           console.error(err);
         }
+        window.userCurrency = currencyUser;
 
         // Create Razorpay Order
         const orderRes = await fetch(
@@ -735,9 +764,9 @@ support@goodtimeguruji.in</a>
                     "Content-Type": "application/json"
                   },
                   body: JSON.stringify({
-                    razorpay_payment_id:response.razorpay_payment_id,
-                    razorpay_order_id:response.razorpay_order_id,
-                    razorpay_signature:response.razorpay_signature
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature
                   })
                 }
               );
@@ -806,8 +835,12 @@ support@goodtimeguruji.in</a>
 
       function resetButton() {
         btn.disabled = false;
-        btnText.innerText = "Submit";
         loader.style.display = "none";
+        if (window.userCurrency === "USD") {
+          btnText.innerText = "Proceed to Pay $8";
+        } else {
+          btnText.innerText = "Proceed to Pay ₹500";
+        }
       }
     }
   </script>
@@ -830,7 +863,7 @@ support@goodtimeguruji.in</a>
           document.getElementById("rasi").value,
 
         place:
-          document.getElementById("location").value,
+          document.getElementById("locationInput").value,
 
         lat:
           document.getElementById("lat").value,

@@ -38,12 +38,13 @@ import runAuspiciousCheckAcrossDatesTakingMedicine from "./services/TakingMedici
 import runAuspiciousCheckAcrossDatesSurgery from "./services/Surgery.js";
 import runAuspiciousCheckAcrossDatesArogyaSnanam from "./services/ArogyaSnanam.js";
 import runAuspiciousCheckAcrossDatesOilBath from "./services/OilBath.js";
-//import runAuspiciousCheckAcrossDatesBhooPravesam from "./services/Bhoopravesam.js";
 import runAuspiciousCheckAcrossDatesCultivation from "./services/Cultivation.js";
 import runAuspiciousCheckAcrossDatesPlantingSeeds from "./services/PlantingSeeds.js";
 import runAuspiciousCheckAcrossDatesCuttingGrains from "./services/CuttingGrains.js";
 import runAuspiciousCheckAcrossDatesLandRegistration from "./services/LandRegistration.js";
 import runAuspiciousCheckAcrossDatesExamFees from "./services/ExamFees.js";
+import runAuspiciousCheckAcrossDatesNamakarana from "./services/Namakarana.js";
+import runAuspiciousCheckAcrossDatesShantimuhurtam from "./services/Shantimuhurtam.js";
 import authRoutes from "./services/authRoutes.js";
 import {createOrder,verifyPayment} from "./services/razorpayService.js";
 import { sendMuhuratEmail } from "./services/emailService.js";
@@ -55,11 +56,11 @@ app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
     "default-src 'self'; " +
-    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com https://apis.google.com https://www.google.com https://www.gstatic.com https://checkout.razorpay.com https://cdn.razorpay.com; " +
-    "connect-src 'self' https://cdn.jsdelivr.net http://localhost:3000 https://accounts.google.com https://apis.google.com https://www.google.com https://api.razorpay.com https://nominatim.openstreetmap.org https://checkout.razorpay.com https://api.razorpay.com https://cdn.razorpay.com https://lumberjack.razorpay.com; " +
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com https://apis.google.com https://www.google.com https://www.gstatic.com https://checkout.razorpay.com https://cdn.razorpay.com https://lumberjack.razorpay.com; " +
+    "connect-src 'self' https://cdn.jsdelivr.net http://localhost:3000 https://accounts.google.com https://apis.google.com https://www.google.com https://api.razorpay.com https://nominatim.openstreetmap.org https://checkout.razorpay.com https://api.razorpay.com https://cdn.razorpay.com https://lumberjack.razorpay.com https://api.geoapify.com https://ipapi.co; " +
     "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://accounts.google.com; " +
     "font-src 'self' https://fonts.gstatic.com https://ssl.gstatic.com; " +
-    "frame-src https://accounts.google.com https://www.google.com https://checkout.razorpay.com https://api.razorpay.com https://cdn.razorpay.com;"
+    "frame-src https://accounts.google.com https://www.google.com https://checkout.razorpay.com https://api.razorpay.com https://cdn.razorpay.com https://lumberjack.razorpay.com;"
   );
   next();
 });
@@ -159,13 +160,13 @@ setupRoute("/runAuspiciousCheckAcrossDatesTakingMedicine", runAuspiciousCheckAcr
 setupRoute("/runAuspiciousCheckAcrossDatesSurgery", runAuspiciousCheckAcrossDatesSurgery);
 setupRoute("/runAuspiciousCheckAcrossDatesArogyaSnanam", runAuspiciousCheckAcrossDatesArogyaSnanam);
 setupRoute("/runAuspiciousCheckAcrossDatesOilBath", runAuspiciousCheckAcrossDatesOilBath);
-//setupRoute("/runAuspiciousCheckAcrossDatesBhooPravesam", runAuspiciousCheckAcrossDatesBhooPravesam);
+setupRoute("/runAuspiciousCheckAcrossDatesNamakarana", runAuspiciousCheckAcrossDatesNamakarana);
 setupRoute("/runAuspiciousCheckAcrossDatesCultivation", runAuspiciousCheckAcrossDatesCultivation);
 setupRoute("/runAuspiciousCheckAcrossDatesPlantingSeeds", runAuspiciousCheckAcrossDatesPlantingSeeds);
 setupRoute("/runAuspiciousCheckAcrossDatesCuttingGrains", runAuspiciousCheckAcrossDatesCuttingGrains);
 setupRoute("/runAuspiciousCheckAcrossDatesLandRegistration", runAuspiciousCheckAcrossDatesLandRegistration);
 setupRoute("/runAuspiciousCheckAcrossDatesExamFees", runAuspiciousCheckAcrossDatesExamFees);
-//setupRoute("/runAuspiciousCheckAcrossDatesProdtest", runAuspiciousCheckAcrossDatesProdtest);
+setupRoute("/runAuspiciousCheckAcrossDatesShantimuhurtam", runAuspiciousCheckAcrossDatesShantimuhurtam);
 app.post("/api/create-order", createOrder);
 app.post("/api/verify-payment", verifyPayment);
 app.post("/api/send-muhurat-email", verifyToken, sendMuhuratEmail);

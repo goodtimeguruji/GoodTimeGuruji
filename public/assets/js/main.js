@@ -36,7 +36,7 @@ document.querySelectorAll(".nav-mobile a").forEach(a => {
 
 let debounceTimer;
 
-const locationInput = document.getElementById("location");
+const locationInput = document.getElementById("locationInput");
 const suggestionBox = document.getElementById("locationSuggestions");
 
 if (locationInput && suggestionBox) {
@@ -58,45 +58,82 @@ if (locationInput && suggestionBox) {
 async function fetchLocations(query) {
   if (!suggestionBox) return;
 
-  suggestionBox.innerHTML = "<div class='af-suggestion-item'>Searching...</div>";
+  suggestionBox.innerHTML =
+    "<div class='af-suggestion-item'>Searching...</div>";
 
   try {
+    const apiKey = "28c4501555ee44698a1510d3b1a41dce";
+
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&q=${encodeURIComponent(query)}`
+      `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(
+        query
+      )}&limit=10&format=json&apiKey=${apiKey}`
     );
 
-    const places = await res.json();
+    const data = await res.json();
+
+    const places = data.results || [];
 
     if (!places.length) {
-      suggestionBox.innerHTML = "<div class='af-suggestion-item'>No results found</div>";
+      suggestionBox.innerHTML =
+        "<div class='af-suggestion-item'>No results found</div>";
       return;
     }
 
     window.locationResults = places;
+
     suggestionBox.innerHTML = "";
 
     places.forEach((place, index) => {
       const div = document.createElement("div");
+
       div.className = "af-suggestion-item";
-      div.textContent = place.display_name;
+
+      div.textContent =
+        place.formatted ||
+        place.city ||
+        place.name;
+
       div.onclick = () => selectLocation(index);
+
       suggestionBox.appendChild(div);
     });
 
   } catch (err) {
-    suggestionBox.innerHTML = "<div class='af-suggestion-item'>Error loading locations</div>";
+    console.error(err);
+
+    suggestionBox.innerHTML =
+      "<div class='af-suggestion-item'>Error loading locations</div>";
   }
 }
 
 function selectLocation(index) {
   const place = window.locationResults[index];
 
-  document.getElementById("location").value = place.display_name;
-  document.getElementById("lat").value = place.lat;
-  document.getElementById("lon").value = place.lon;
-  document.getElementById("timezone").value = "5.5";
+  document.getElementById("locationInput").value =
+    place.formatted;
 
-  suggestionBox.innerHTML = "";
+  document.getElementById("lat").value =
+    place.lat;
+
+  document.getElementById("lon").value =
+    place.lon;
+
+  // Convert seconds to hours
+  const timezoneOffset =
+    (place.timezone?.offset_STD_seconds || 0) / 3600;
+
+  document.getElementById("timezone").value =
+    timezoneOffset;
+
+  console.log("Selected Location:", {
+    place: place.formatted,
+    lat: place.lat,
+    lon: place.lon,
+    timezone: timezoneOffset
+  });
+
+  document.getElementById("locationSuggestions").innerHTML = "";
 }
 
 
@@ -130,34 +167,5 @@ function handleGoogleLogin(response) {
 }
 
 
-// ================= DATE RANGE =================
 
-document.addEventListener("DOMContentLoaded", function () {
-  const fromDate = document.getElementById("fromDate");
-  const toDate = document.getElementById("toDate");
 
-  if (!fromDate || !toDate) return;
-
-  function getToday() {
-    return new Date().toISOString().split("T")[0];
-  }
-
-  function addDays(dateStr, days) {
-    const d = new Date(dateStr);
-    d.setDate(d.getDate() + days);
-    return d.toISOString().split("T")[0];
-  }
-
-  const today = getToday();
-  fromDate.min = today;
-  toDate.min = today;
-
-  fromDate.addEventListener("change", function () {
-    const selectedFrom = this.value;
-    if (!selectedFrom) return;
-
-    toDate.min = selectedFrom;
-    toDate.max = addDays(selectedFrom, 90);
-    toDate.value = selectedFrom;
-  });
-});

@@ -217,12 +217,6 @@ async function getTithiDetailsForDate(dateStr, lat, lon, tzone, place) {
     return result;
 }
 
-function clampToDate(dateStr, dateTime) {
-    const start = new Date(`${dateStr}T00:00:00`);
-    const end = new Date(`${dateStr}T23:59:59`);
-    const d = new Date(dateTime);
-    return new Date(Math.min(Math.max(d, start), end));
-}
 
 async function getYogaDetailsForDate(dateStr, lat, lon, tzone, place) {
     const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
@@ -422,7 +416,7 @@ function getMasterTimeRange(filteredWara) {
 
     return {
         masterStartTime,
-        masterEndTime: `${date}T23:59:59`
+        masterEndTime: `${date}T18:00:00`
     };
 }
 
@@ -951,7 +945,7 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 }
 
 
-export default async function runAuspiciousCheckAcrossDatesExamFees(fromDateStr, toDateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
+export default async function runAuspiciousCheckAcrossDatesNamakarana(fromDateStr, toDateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
     const resultsFiltered = [];
     const resultsCommon = [];
 

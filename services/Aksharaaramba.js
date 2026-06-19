@@ -211,13 +211,6 @@ async function getTithiDetailsForDate(dateStr, lat, lon, tzone, place) {
   return result;
 }
 
-function clampToDate(dateStr, dateTime) {
-  const start = new Date(`${dateStr}T00:00:00`);
-  const end = new Date(`${dateStr}T23:59:59`);
-  const d = new Date(dateTime);
-  return new Date(Math.min(Math.max(d, start), end));
-}
-
 async function getYogaDetailsForDate(dateStr, lat, lon, tzone, place) {
   const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
   const authToken = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpdmluZWFwaS5jb20vcmVnZW5lcmF0ZS1hcGkta2V5cyIsImlhdCI6MTc0ODA5NTgzOSwibmJmIjoxNzQ4MDk1ODM5LCJqdGkiOiI3OFNZRjI2aThSYk9JT1hoIiwic3ViIjoiMzY0NiIsInBydiI6ImU2ZTY0YmIwYjYxMjZkNzNjNmI5N2FmYzNiNDY0ZDk4NWY0NmM5ZDcifQ.2rq14SoOpQocVpJmISJeB2amXpudBPHGHdhR123zPrc";
@@ -416,7 +409,7 @@ function getMasterTimeRange(filteredWara) {
 
   return {
     masterStartTime,
-    masterEndTime: `${date}T23:59:59`
+    masterEndTime: `${date}T18:00:00`
   };
 }
 
