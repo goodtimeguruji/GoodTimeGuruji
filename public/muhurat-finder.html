@@ -692,9 +692,21 @@ support@goodtimeguruji.in">
 
     async function submitService() {
 
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("Please login before proceeding with payment.");
+        window.location.href = "login.html";
+        return;
+      }
+
       const btn = document.getElementById("submitBtn");
+
+
       const btnText = document.getElementById("btnText");
       const loader = document.getElementById("btnLoader");
+
+
 
       btn.disabled = true;
       btnText.innerText = "Processing Payment...";
@@ -799,35 +811,26 @@ support@goodtimeguruji.in">
 
                       razorpay_order_id:
                         response.razorpay_order_id,
-
                       service:
                         document.getElementById("functionService")
                           .options[
                           document.getElementById("functionService")
                             .selectedIndex
                         ].text,
-
                       location:
                         document.getElementById("locationInput").value,
-
                       lat:
                         document.getElementById("lat").value,
-
                       lon:
                         document.getElementById("lon").value,
-
                       timezone:
                         document.getElementById("timezone").value,
-
                       nakshatra:
                         document.getElementById("nakshatram").value,
-
                       rasi:
                         document.getElementById("rasi").value,
-
                       fromDate:
                         document.getElementById("fromDate").value,
-
                       toDate:
                         document.getElementById("toDate").value
                     })
@@ -853,35 +856,26 @@ support@goodtimeguruji.in">
 
           modal: {
             ondismiss: function () {
-
               alert("Payment cancelled");
-
               resetButton();
             }
           },
-
           theme: {
             color: "#1f2937"
           }
         };
 
         const rzp = new Razorpay(options);
-
         rzp.on("payment.failed", function (response) {
-
           alert(
             response.error.description ||
             "Payment failed"
           );
-
           resetButton();
         });
         rzp.open();
-
       } catch (err) {
-
         alert(err.message);
-
         resetButton();
       }
 
@@ -941,12 +935,9 @@ support@goodtimeguruji.in">
       );
 
       if (res.status === 401) {
-
         localStorage.removeItem("token");
-
         window.location.href = "login.html";
-
-        return;
+        throw new Error("Session expired. Please login again.");
       }
 
       if (!res.ok) {
