@@ -117,7 +117,17 @@
         <a href="about-us.html" class="m-link">About Us</a>
         <a href="contact-us.html" class="m-link">Contact Us</a>
 
-        <a href="login.html" class="m-link m-login">Login / Sign Up</a>
+        <div id="mobileUserMenu" style="display:none;">
+          <a href="#" class="m-link" id="mobileUsername">User</a>
+
+          <div class="m-dropdown">
+            <a href="#" class="m-sublink" id="mobileLogoutBtn">Logout</a>
+          </div>
+        </div>
+
+        <a href="login.html" class="m-link m-login" id="mobileLoginBtn">
+          Login / Sign Up
+        </a>
       </nav>
     </aside>
   </header>
@@ -203,7 +213,7 @@
               <i class="fa fa-envelope me-2"></i>
               <a href="mailto:
 support@goodtimeguruji.in">
-support@goodtimeguruji.in</a>
+                support@goodtimeguruji.in</a>
             </p>
             <!-- <p class="footer-text mb-3">
                 <i class="fa fa-map me-2"></i>
@@ -421,11 +431,11 @@ support@goodtimeguruji.in</a>
 
 </body>
 <script>
-history.pushState(null, null, location.href);
+  history.pushState(null, null, location.href);
 
-window.addEventListener("popstate", function () {
+  window.addEventListener("popstate", function () {
     window.location.replace("index.html");
-});
+  });
 </script>
 
 

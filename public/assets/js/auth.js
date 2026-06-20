@@ -11,15 +11,19 @@ function isTokenValid() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   const token = isTokenValid() ? localStorage.getItem("token") : null;
-    if (!token) {
+  if (!token) {
     localStorage.removeItem("token");
     localStorage.removeItem("token_expiry");
-    }
+  }
 
   const loginBtn = document.getElementById("loginBtn");
   const userDropdown = document.getElementById("userDropdown");
   const usernameDisplay = document.getElementById("usernameDisplay");
   const logoutBtn = document.getElementById("logoutBtn");
+  const mobileLoginBtn = document.getElementById("mobileLoginBtn");
+  const mobileUserMenu = document.getElementById("mobileUserMenu");
+  const mobileUsername = document.getElementById("mobileUsername");
+  const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
 
   if (token) {
     try {
@@ -32,9 +36,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await res.json();
 
       if (data.success) {
+
+        // Desktop
         if (loginBtn) loginBtn.style.display = "none";
         if (userDropdown) userDropdown.style.display = "block";
         if (usernameDisplay) usernameDisplay.textContent = data.username;
+
+        // Mobile
+        if (mobileLoginBtn) mobileLoginBtn.style.display = "none";
+        if (mobileUserMenu) mobileUserMenu.style.display = "block";
+        if (mobileUsername) mobileUsername.textContent = data.username;
       } else {
         localStorage.removeItem("token");
       }
@@ -46,6 +57,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // logout
   if (logoutBtn) {
+
+    if (mobileLogoutBtn) {
+      mobileLogoutBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        await fetch(`${window.location.origin}/api/auth/logout`, {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token
+          }
+        });
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("token_expiry");
+
+        window.location.href = "index.html";
+      });
+    }
     logoutBtn.addEventListener("click", async () => {
       await fetch(`${window.location.origin}/api/auth/logout`, {
         method: "POST",
@@ -54,9 +83,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("token_expiry");
-    window.location.href = "index.html";
+      localStorage.removeItem("token");
+      localStorage.removeItem("token_expiry");
+      window.location.href = "index.html";
     });
   }
 });
