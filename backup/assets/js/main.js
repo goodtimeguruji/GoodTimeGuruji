@@ -34,7 +34,6 @@ document.querySelectorAll(".nav-mobile a").forEach(a => {
 
 // ================= LOCATION SEARCH =================
 
-
 let debounceTimer;
 
 const locationInput = document.getElementById("locationInput");
@@ -47,21 +46,12 @@ if (locationInput && suggestionBox) {
 
     if (!query) {
       suggestionBox.innerHTML = "";
-      suggestionBox.classList.remove("visible");
       return;
     }
 
     debounceTimer = setTimeout(() => {
       fetchLocations(query);
     }, 400);
-  });
-
-  // Close dropdown when clicking outside
-  document.addEventListener("click", function (e) {
-    if (!locationInput.contains(e.target) && !suggestionBox.contains(e.target)) {
-      suggestionBox.innerHTML = "";
-      suggestionBox.classList.remove("visible");
-    }
   });
 }
 
@@ -70,7 +60,6 @@ async function fetchLocations(query) {
 
   suggestionBox.innerHTML =
     "<div class='af-suggestion-item'>Searching...</div>";
-  suggestionBox.classList.add("visible");
 
   try {
     const apiKey = "28c4501555ee44698a1510d3b1a41dce";
@@ -88,7 +77,6 @@ async function fetchLocations(query) {
     if (!places.length) {
       suggestionBox.innerHTML =
         "<div class='af-suggestion-item'>No results found</div>";
-      suggestionBox.classList.add("visible");
       return;
     }
 
@@ -111,14 +99,11 @@ async function fetchLocations(query) {
       suggestionBox.appendChild(div);
     });
 
-    suggestionBox.classList.add("visible");
-
   } catch (err) {
     console.error(err);
 
     suggestionBox.innerHTML =
       "<div class='af-suggestion-item'>Error loading locations</div>";
-    suggestionBox.classList.add("visible");
   }
 }
 
@@ -148,11 +133,8 @@ function selectLocation(index) {
     timezone: timezoneOffset
   });
 
-  suggestionBox.innerHTML = "";
-  suggestionBox.classList.remove("visible");
+  document.getElementById("locationSuggestions").innerHTML = "";
 }
-
-
 
 
 // ================= GOOGLE LOGIN =================

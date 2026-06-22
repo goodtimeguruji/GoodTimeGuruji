@@ -110,6 +110,7 @@ function toggleAuth(mode) {
 
   document.getElementById("nameField").style.display = mode === "signup" ? "flex" : "none";
   document.getElementById("confirmPasswordField").style.display = mode === "signup" ? "flex" : "none";
+
   document.getElementById("submitBtn").textContent = mode === "signup" ? "Sign Up" : "Login";
 }
 

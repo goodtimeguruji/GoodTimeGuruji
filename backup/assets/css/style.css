@@ -16,88 +16,25 @@
   --second-font: "Poppins", sans-serif;
 }
 
-/* Mobile drawer — account section */
-.drawer-user-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 14px 14px 6px;
-  padding: 12px 14px;
-  background: rgba(31, 106, 255, 0.06);
-  border: 1px solid rgba(31, 106, 255, 0.18);
-  border-radius: 14px;
+#mobileUserMenu {
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+    padding-top: 10px;
 }
-.drawer-user-avatar {
-  flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
-  text-transform: uppercase;
-  color: #fff;
-  background: linear-gradient(135deg, var(--secondary-color, #b8941f), #8b6f17);
-  font-family: var(--second-font);
+
+#mobileUsername {
+    font-weight: 600;
+    color: #000;
 }
-.drawer-user-info {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.3;
-  font-family: var(--second-font);
+
+#mobileLogoutBtn {
+    color: #dc3545;
+    padding-left: 20px;
 }
-.drawer-user-label {
-  font-size: 11px;
-  color: var(--muted);
-  opacity: 0.65;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-.drawer-user-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #222;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.drawer-logout-btn {
-  flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 16px;
-  color: #dc3545;
-  background: rgba(220, 53, 69, 0.08);
-  border: 1px solid rgba(220, 53, 69, 0.15);
-  transition: 0.2s;
-  text-decoration: none;
-}
-.drawer-logout-btn:hover,
-.drawer-logout-btn:focus {
-  background: rgba(220, 53, 69, 0.16);
-  color: #dc3545;
-}
-.drawer-login-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 14px 14px 6px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  font-family: var(--second-font);
-}
-.drawer-login-card i {
-  font-size: 18px;
+
+.af-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .af-suggestions {
@@ -111,10 +48,6 @@
   z-index: 9999;
   margin-top: 4px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  display: none;
-}
-.af-suggestions.visible {
-  display: block;
 }
 
 .af-suggestion-item {
@@ -126,6 +59,7 @@
 .af-suggestion-item:hover {
   background-color: #f5f5f5;
 }
+
 :root {
     --primary-gold: #c9a227;
     --deep-gold: #b8941f;

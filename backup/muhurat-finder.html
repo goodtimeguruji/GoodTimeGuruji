@@ -117,24 +117,6 @@
         <button class="drawer-close" id="closeBtn" aria-label="Close menu">✕</button>
       </div>
 
-      <!-- Logged-in user card (shown only when authenticated) -->
-      <div class="drawer-user-card" id="mobileUserMenu" style="display:none;">
-        <div class="drawer-user-avatar" id="mobileUsernameInitial">U</div>
-        <div class="drawer-user-info">
-          <span class="drawer-user-label">Signed in as</span>
-          <span class="drawer-user-name" id="mobileUsername">User</span>
-        </div>
-        <a href="#" class="drawer-logout-btn" id="mobileLogoutBtn" aria-label="Logout">
-          <i class="bi bi-box-arrow-right"></i>
-        </a>
-      </div>
-
-      <!-- Logged-out prompt (shown only when not authenticated) -->
-      <a href="login.html" class="drawer-login-card m-login" id="mobileLoginBtn">
-        <i class="bi bi-person-circle"></i>
-        <span>Login / Sign Up</span>
-      </a>
-
       <nav class="nav-mobile">
         <a href="index.html" class="m-link">Home</a>
         <a href="muhurat-finder.html" class="m-link">Muhurat Finder</a>
@@ -151,6 +133,20 @@
 
         <a href="about-us.html" class="m-link">About Us</a>
         <a href="contact-us.html" class="m-link">Contact Us</a>
+
+        <div id="mobileUserMenu" style="display:none;">
+          <div class="m-link user-name-mobile" id="mobileUsername">
+  User
+</div>
+
+          <div class="m-dropdown">
+            <a href="#" class="m-sublink" id="mobileLogoutBtn">Logout</a>
+          </div>
+        </div>
+
+        <a href="login.html" class="m-link m-login" id="mobileLoginBtn">
+          Login / Sign Up
+        </a>
       </nav>
     </aside>
   </header>
@@ -283,10 +279,17 @@
                     <div class="col-md-8">
                       <select id="functionService" class="form-select af-input af-box" required>
                         <option value="" selected disabled>List of Functions</option>
-                        <option value="runAuspiciousCheckAcrossDatesAksharaaramba">Aksharaarambham / Initiation into Learning</option>
-                        <option value="runAuspiciousCheckAcrossDatesAnnaprasana">Annaprasana / First Feeding Ceremony</option>
-                        <option value="runAuspiciousCheckAcrossDatesArogyaSnanam">Arogya Snanam / Ritual Healing Bath</option>
-                        <option value="runAuspiciousCheckAcrossDatesBhooPravesam">Bhoo Pravesam / Land Entry Ceremony</option>
+                        <option value="runAuspiciousCheckAcrossDatesAksharaaramba">Aksharaarambham / Initiation into
+                          Learning</option>
+
+                        <option value="runAuspiciousCheckAcrossDatesAnnaprasana">Annaprasana / First Feeding Ceremony
+                        </option>
+
+                        <option value="runAuspiciousCheckAcrossDatesArogyaSnanam">Arogya Snanam / Ritual Healing Bath
+                        </option>
+
+                        <option value="runAuspiciousCheckAcrossDatesBhooPravesam">Bhoo Pravesam / Land Entry Ceremony
+                        </option>
 
                         <option value="runAuspiciousCheckAcrossDatesChildCradling">Child Cradling / Cradle Ceremony
                         </option>
@@ -381,9 +384,8 @@
                         </div>
 
                         <div class=" col-sm-12 col-md-6">
-                          <label class="small mb-1">To Date <span id="toDateHint" class="text-muted" style="font-size:11px; display:none;">(max 3 months)</span></label>
-                          <input type="text" id="toDate" class="form-control af-input af-datebox w-100" placeholder="— auto-set —" readonly disabled style="cursor:default;" />
-                          <input type="hidden" id="toDateValue" />
+                          <label class="small mb-1">To Date</label>
+                          <input type="date" id="toDate" class="form-control af-input af-datebox w-100" required />
                         </div>
                       </div>
                     </div>
@@ -571,7 +573,8 @@
               </p> -->
             <p class="footer-text mb-2">
               <i class="fa fa-envelope me-2"></i>
-              <a href="mailto:support@goodtimeguruji.in">
+              <a href="mailto:
+support@goodtimeguruji.in">
                 support@goodtimeguruji.in</a>
             </p>
             <!-- <p class="footer-text mb-3">
@@ -633,15 +636,13 @@
 
       const fromDate = document.getElementById("fromDate");
       const toDate = document.getElementById("toDate");
-      const toDateValue = document.getElementById("toDateValue");
-      const toDateHint = document.getElementById("toDateHint");
 
       if (!fromDate || !toDate) {
         alert("Date inputs not found");
         return;
       }
 
-      // Fix timezone issue
+      // ✅ Fix timezone issue (IMPORTANT)
       function formatDate(date) {
         const d = new Date(date);
         const month = ("0" + (d.getMonth() + 1)).slice(-2);
@@ -649,46 +650,38 @@
         return d.getFullYear() + "-" + month + "-" + day;
       }
 
-      function formatDateDisplay(dateStr) {
-        const [y, m, d] = dateStr.split("-");
-        return `${d}-${m}-${y}`;
-      }
-
-      // Get today's local date
+      // ✅ Get today's local date (correct way)
       const today = new Date();
       const todayStr = formatDate(today);
 
       fromDate.min = todayStr;
+      toDate.min = todayStr;
 
-      // toDate starts disabled
-      toDate.disabled = true;
-      toDateValue.value = "";
+      console.log("Today set as:", todayStr);
 
-      // Handle From Date change
+      // ✅ Handle From Date change
       fromDate.addEventListener("change", function () {
         const selectedFrom = this.value;
 
-        if (!selectedFrom) {
-          // fromDate cleared — lock toDate again
-          toDate.disabled = true;
-          toDate.value = "";
-          toDateValue.value = "";
-          if (toDateHint) toDateHint.style.display = "none";
-          return;
-        }
+        if (!selectedFrom) return;
 
         const from = new Date(selectedFrom);
 
-        // Cap to 90 days (3 months)
+        // Add 90 days
         const max = new Date(from);
         max.setDate(from.getDate() + 90);
 
         const maxStr = formatDate(max);
 
-        toDate.disabled = false;
-        toDate.value = formatDateDisplay(maxStr);
-        toDateValue.value = maxStr;
-        if (toDateHint) toDateHint.style.display = "inline";
+        toDate.min = selectedFrom;
+        toDate.max = maxStr;
+
+        console.log("From:", selectedFrom, "Max:", maxStr);
+
+        // Reset invalid To Date
+        if (toDate.value < selectedFrom || toDate.value > maxStr) {
+          toDate.value = "";
+        }
       });
 
     });
@@ -874,7 +867,7 @@
                       fromDate:
                         document.getElementById("fromDate").value,
                       toDate:
-                        document.getElementById("toDateValue").value
+                        document.getElementById("toDate").value
                     })
                   });
                 }
@@ -942,7 +935,7 @@
           document.getElementById("fromDate").value,
 
         toDateStr:
-          document.getElementById("toDateValue").value,
+          document.getElementById("toDate").value,
 
         userNakshatra:
           document.getElementById("nakshatram").value,

@@ -23,7 +23,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   const mobileLoginBtn = document.getElementById("mobileLoginBtn");
   const mobileUserMenu = document.getElementById("mobileUserMenu");
   const mobileUsername = document.getElementById("mobileUsername");
+  const mobileUsernameInitial = document.getElementById("mobileUsernameInitial");
   const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
+
+  // Default state: logged out. Set up front so there's no flash of the
+  // wrong state while the /get-user request is in flight.
+  function showLoggedOut() {
+    // Desktop
+    if (loginBtn) loginBtn.style.display = "";
+    if (userDropdown) userDropdown.style.display = "none";
+
+    // Mobile
+    if (mobileLoginBtn) mobileLoginBtn.style.display = "flex";
+    if (mobileUserMenu) mobileUserMenu.style.display = "none";
+  }
+
+  function showLoggedIn(username) {
+    // Desktop
+    if (loginBtn) loginBtn.style.display = "none";
+    if (userDropdown) userDropdown.style.display = "block";
+    if (usernameDisplay) usernameDisplay.textContent = username;
+
+    // Mobile
+    if (mobileLoginBtn) mobileLoginBtn.style.display = "none";
+    if (mobileUserMenu) mobileUserMenu.style.display = "flex";
+    if (mobileUsername) mobileUsername.textContent = username;
+    if (mobileUsernameInitial) {
+      mobileUsernameInitial.textContent = username ? username.charAt(0).toUpperCase() : "U";
+    }
+  }
+
+  showLoggedOut();
 
   if (token) {
     try {
@@ -36,56 +66,48 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await res.json();
 
       if (data.success) {
-
-        // Desktop
-        if (loginBtn) loginBtn.style.display = "none";
-        if (userDropdown) userDropdown.style.display = "block";
-        if (usernameDisplay) usernameDisplay.textContent = data.username;
-
-        // Mobile
-        if (mobileLoginBtn) mobileLoginBtn.style.display = "none";
-        if (mobileUserMenu) mobileUserMenu.style.display = "block";
-        if (mobileUsername) mobileUsername.textContent = data.username;
+        showLoggedIn(data.username);
       } else {
         localStorage.removeItem("token");
+        localStorage.removeItem("token_expiry");
+        showLoggedOut();
       }
 
     } catch (err) {
       console.error("Auth error:", err);
+      showLoggedOut();
     }
   }
 
   // logout
-  if (logoutBtn) {
-
-    if (mobileLogoutBtn) {
-      mobileLogoutBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
-
-        await fetch(`${window.location.origin}/api/auth/logout`, {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token
-          }
-        });
-
-        localStorage.removeItem("token");
-        localStorage.removeItem("token_expiry");
-
-        window.location.href = "index.html";
-      });
-    }
-    logoutBtn.addEventListener("click", async () => {
+  async function doLogout() {
+    try {
       await fetch(`${window.location.origin}/api/auth/logout`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + token
         }
       });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
 
-      localStorage.removeItem("token");
-      localStorage.removeItem("token_expiry");
-      window.location.href = "index.html";
+    localStorage.removeItem("token");
+    localStorage.removeItem("token_expiry");
+    window.location.href = "index.html";
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      doLogout();
+    });
+  }
+
+  if (mobileLogoutBtn) {
+    mobileLogoutBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      doLogout();
     });
   }
 });

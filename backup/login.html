@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="./assets/fontawsome/css/fontawesome.min.css" />
     <link rel="stylesheet" href="./assets/css/bootstrap-icons.css" />
     <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD"></script>
-    <script src="./assets/js/auth.js"></script>
 </head>
 
 <body>
@@ -94,24 +93,6 @@
                 <button class="drawer-close" id="closeBtn" aria-label="Close menu">✕</button>
             </div>
 
-            <!-- Logged-in user card (shown only when authenticated) -->
-            <div class="drawer-user-card" id="mobileUserMenu" style="display:none;">
-                <div class="drawer-user-avatar" id="mobileUsernameInitial">U</div>
-                <div class="drawer-user-info">
-                    <span class="drawer-user-label">Signed in as</span>
-                    <span class="drawer-user-name" id="mobileUsername">User</span>
-                </div>
-                <a href="#" class="drawer-logout-btn" id="mobileLogoutBtn" aria-label="Logout">
-                    <i class="bi bi-box-arrow-right"></i>
-                </a>
-            </div>
-
-            <!-- Logged-out prompt (shown only when not authenticated) -->
-            <a href="login.html" class="drawer-login-card m-login" id="mobileLoginBtn">
-                <i class="bi bi-person-circle"></i>
-                <span>Login / Sign Up</span>
-            </a>
-
             <nav class="nav-mobile">
                 <a href="index.html" class="m-link">Home</a>
                 <a href="muhurat-finder.html" class="m-link">Muhurat Finder</a>
@@ -128,6 +109,8 @@
 
                 <a href="about-us.html" class="m-link">About Us</a>
                 <a href="contact-us.html" class="m-link">Contact Us</a>
+
+                <a href="#" class="m-link m-login">Login / Sign Up</a>
             </nav>
         </aside>
     </header>
