@@ -2,67 +2,67 @@
 
 
 const NAKSHATRA_WEEKDAY_RULES = {
-  Raviwara: {
-    Magha: "M",
-    Vishakha: "M",
-    Anuradha: "M",
-    Jyeshtha: "M",
-    Dhanishta: "M"
-  },
+    Raviwara: {
+        Magha: "M",
+        Vishakha: "M",
+        Anuradha: "M",
+        Jyeshtha: "M",
+        Dhanishta: "M"
+    },
 
-  Somawara: {
-    Krittika: "M",
-    Magha: "M",
-    Vishakha: "M",
-    "Uttara Ashadha": "M",
-    "Poorva Bhadrapada": "M"
-  },
+    Somawara: {
+        Krittika: "M",
+        Magha: "M",
+        Vishakha: "M",
+        "Uttara Ashadha": "M",
+        "Poorva Bhadrapada": "M"
+    },
 
-  Mangalawara: {
-    Ardhra: "M",
-    Vishakha: "M",
-    Satabhisha: "M",
-    "Poorva Bhadrapada": "M"
-  },
+    Mangalawara: {
+        Ardhra: "M",
+        Vishakha: "M",
+        Satabhisha: "M",
+        "Poorva Bhadrapada": "M"
+    },
 
-  Budhawara: {
-    Ashwini: "M",
-    Hasta: "M",
-    Moola: "M",
-    Dhanishta: "M",
-    Revati: "M"
-  },
+    Budhawara: {
+        Ashwini: "M",
+        Hasta: "M",
+        Moola: "M",
+        Dhanishta: "M",
+        Revati: "M"
+    },
 
-  Guruwara: {
-    Krittika: "M",
-    Rohini: "M",
-    Mrigashira: "M",
-    Ardhra: "M",
-    "Uttara Phalguni": "M",
-    Satabhisha: "M"
-  },
+    Guruwara: {
+        Krittika: "M",
+        Rohini: "M",
+        Mrigashira: "M",
+        Ardhra: "M",
+        "Uttara Phalguni": "M",
+        Satabhisha: "M"
+    },
 
-  Shukrawara: {
-    Rohini: "M",
-    Ashleysha: "M",
-    Magha: "M",
-    Jyeshtha: "M"
-  },
+    Shukrawara: {
+        Rohini: "M",
+        Ashleysha: "M",
+        Magha: "M",
+        Jyeshtha: "M"
+    },
 
-  Shaniwara: {
-    Ashleysha: "M",
-    "Uttara Phalguni": "M",
-    Hasta: "M",
-    Chitra: "M",
-    "Poorva Bhadrapada": "M",
-    Revati: "M"
-  }
+    Shaniwara: {
+        Ashleysha: "M",
+        "Uttara Phalguni": "M",
+        Hasta: "M",
+        Chitra: "M",
+        "Poorva Bhadrapada": "M",
+        Revati: "M"
+    }
 };
 
 function isNakshatraMarkedM(weekday, nakshatra) {
-  return (
-    NAKSHATRA_WEEKDAY_RULES[weekday]?.[nakshatra] === "M"
-  );
+    return (
+        NAKSHATRA_WEEKDAY_RULES[weekday]?.[nakshatra] === "M"
+    );
 }
 
 async function getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place) {
@@ -417,211 +417,211 @@ function getMasterTimeRange(filteredWara) {
 }
 
 function getBalamWindow({
-  values,
-  target,
-  upto,
-  dateStr,
-  key
+    values,
+    target,
+    upto,
+    dateStr,
+    key
 }) {
-  const { current = [], next = [] } = values;
+    const { current = [], next = [] } = values;
 
-  const dayStart = `${dateStr}T00:00:00`;
-  const dayEnd = `${dateStr}T23:59:59`;
+    const dayStart = `${dateStr}T00:00:00`;
+    const dayEnd = `${dateStr}T23:59:59`;
 
-  if (!upto) {
-    return current.includes(target)
-      ? [{
-        date: dateStr,
-        [key]: target,
-        start_time: dayStart,
-        end_time: dayEnd
-      }]
-      : null;
-  }
+    if (!upto) {
+        return current.includes(target)
+            ? [{
+                date: dateStr,
+                [key]: target,
+                start_time: dayStart,
+                end_time: dayEnd
+            }]
+            : null;
+    }
 
-  const [timePart, datePart] = upto.split(", ");
-  const [monthStr, dayStr] = datePart.trim().split(" ");
+    const [timePart, datePart] = upto.split(", ");
+    const [monthStr, dayStr] = datePart.trim().split(" ");
 
-  const months = {
-    Jan: 0,
-    Feb: 1,
-    Mar: 2,
-    Apr: 3,
-    May: 4,
-    Jun: 5,
-    Jul: 6,
-    Aug: 7,
-    Sep: 8,
-    Oct: 9,
-    Nov: 10,
-    Dec: 11
-  };
+    const months = {
+        Jan: 0,
+        Feb: 1,
+        Mar: 2,
+        Apr: 3,
+        May: 4,
+        Jun: 5,
+        Jul: 6,
+        Aug: 7,
+        Sep: 8,
+        Oct: 9,
+        Nov: 10,
+        Dec: 11
+    };
 
-  const year = new Date(dateStr).getFullYear();
+    const year = new Date(dateStr).getFullYear();
 
-  const uptoDate = new Date(
-    year,
-    months[monthStr],
-    parseInt(dayStr)
-  );
+    const uptoDate = new Date(
+        year,
+        months[monthStr],
+        parseInt(dayStr)
+    );
 
-  const currentDate = new Date(dateStr);
+    const currentDate = new Date(dateStr);
 
-  if (
-    uptoDate > currentDate &&
-    current.includes(target)
-  ) {
-    return [{
-      date: dateStr,
-      [key]: target,
-      start_time: dayStart,
-      end_time: dayEnd
-    }];
-  }
+    if (
+        uptoDate > currentDate &&
+        current.includes(target)
+    ) {
+        return [{
+            date: dateStr,
+            [key]: target,
+            start_time: dayStart,
+            end_time: dayEnd
+        }];
+    }
 
-  const [hhmm, ampm] = timePart.trim().split(" ");
+    const [hhmm, ampm] = timePart.trim().split(" ");
 
-  let [hour, minute] = hhmm.split(":").map(Number);
+    let [hour, minute] = hhmm.split(":").map(Number);
 
-  if (ampm === "PM" && hour !== 12) hour += 12;
-  if (ampm === "AM" && hour === 12) hour = 0;
+    if (ampm === "PM" && hour !== 12) hour += 12;
+    if (ampm === "AM" && hour === 12) hour = 0;
 
-  const cutoff =
-    `${dateStr}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
+    const cutoff =
+        `${dateStr}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
 
-  const inCurrent = current.includes(target);
-  const inNext = next.includes(target);
+    const inCurrent = current.includes(target);
+    const inNext = next.includes(target);
 
-  if (inCurrent && inNext) {
-    return [{
-      date: dateStr,
-      [key]: target,
-      start_time: dayStart,
-      end_time: dayEnd
-    }];
-  }
+    if (inCurrent && inNext) {
+        return [{
+            date: dateStr,
+            [key]: target,
+            start_time: dayStart,
+            end_time: dayEnd
+        }];
+    }
 
-  if (inCurrent) {
-    return [{
-      date: dateStr,
-      [key]: target,
-      start_time: dayStart,
-      end_time: cutoff
-    }];
-  }
+    if (inCurrent) {
+        return [{
+            date: dateStr,
+            [key]: target,
+            start_time: dayStart,
+            end_time: cutoff
+        }];
+    }
 
-  if (inNext) {
-    return [{
-      date: dateStr,
-      [key]: target,
-      start_time: cutoff,
-      end_time: dayEnd
-    }];
-  }
+    if (inNext) {
+        return [{
+            date: dateStr,
+            [key]: target,
+            start_time: cutoff,
+            end_time: dayEnd
+        }];
+    }
 
-  return null;
+    return null;
 }
 
 async function getBalamTimings(
-  dateStr,
-  userNakshatra,
-  userRasi,
-  lat,
-  lon,
-  tzone,
-  place
+    dateStr,
+    userNakshatra,
+    userRasi,
+    lat,
+    lon,
+    tzone,
+    place
 ) {
-  const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
+    const apiKey = "a3a1ab378702c90ccc523c59a888f28b";
 
-  const authToken =
-    "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpdmluZWFwaS5jb20vcmVnZW5lcmF0ZS1hcGkta2V5cyIsImlhdCI6MTc0ODA5NTgzOSwibmJmIjoxNzQ4MDk1ODM5LCJqdGkiOiI3OFNZRjI2aThSYk9JT1hoIiwic3ViIjoiMzY0NiIsInBydiI6ImU2ZTY0YmIwYjYxMjZkNzNjNmI5N2FmYzNiNDY0ZDk4NWY0NmM5ZDcifQ.2rq14SoOpQocVpJmISJeB2amXpudBPHGHdhR123zPrc";
+    const authToken =
+        "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2RpdmluZWFwaS5jb20vcmVnZW5lcmF0ZS1hcGkta2V5cyIsImlhdCI6MTc0ODA5NTgzOSwibmJmIjoxNzQ4MDk1ODM5LCJqdGkiOiI3OFNZRjI2aThSYk9JT1hoIiwic3ViIjoiMzY0NiIsInBydiI6ImU2ZTY0YmIwYjYxMjZkNzNjNmI5N2FmYzNiNDY0ZDk4NWY0NmM5ZDcifQ.2rq14SoOpQocVpJmISJeB2amXpudBPHGHdhR123zPrc";
 
-  const nakshatraMap = {
-    Ashleysha: "Ashlesha",
-    "Poorva Ashadha": "Purva Ashada",
-    "Uttara Ashadha": "Uttara Ashada"
-  };
-
-  const normalize = name =>
-    nakshatraMap[name] || name;
-
-  const [yyyy, mm, dd] =
-    dateStr.split("-");
-
-  const formData =
-    new URLSearchParams({
-      api_key: apiKey,
-      day: dd,
-      month: mm,
-      year: yyyy,
-      Place: place,
-      lat,
-      lon,
-      tzone,
-      lan: "en"
-    });
-
-  const response = await fetch(
-    "https://astroapi-2.divineapi.com/indian-api/v2/find-chandrabalam-and-tarabalam",
-    {
-      method: "POST",
-      headers: {
-        Authorization: authToken,
-        "Content-Type":
-          "application/x-www-form-urlencoded"
-      },
-      body: formData.toString()
-    }
-  );
-
-  const json = await response.json();
-
-  const tarabalamData =
-    json?.data?.tarabalams;
-
-  const chandrabalamData =
-    json?.data?.chandrabalams;
-
-  if (
-    !tarabalamData ||
-    !chandrabalamData
-  ) {
-    return {
-      chandrabalam: [],
-      tarabalam: []
+    const nakshatraMap = {
+        Ashleysha: "Ashlesha",
+        "Poorva Ashadha": "Purva Ashada",
+        "Uttara Ashadha": "Uttara Ashada"
     };
-  }
 
-  tarabalamData.current =
-    (tarabalamData.current || [])
-      .map(normalize);
+    const normalize = name =>
+        nakshatraMap[name] || name;
 
-  tarabalamData.next =
-    (tarabalamData.next || [])
-      .map(normalize);
+    const [yyyy, mm, dd] =
+        dateStr.split("-");
 
-  userNakshatra =
-    normalize(userNakshatra);
+    const formData =
+        new URLSearchParams({
+            api_key: apiKey,
+            day: dd,
+            month: mm,
+            year: yyyy,
+            Place: place,
+            lat,
+            lon,
+            tzone,
+            lan: "en"
+        });
 
-  return {
-    chandrabalam:
-      getBalamWindow({
-        values: chandrabalamData,
-        target: userRasi,
-        upto: chandrabalamData.upto,
-        dateStr,
-        key: "rasi"
-      }) || [],
+    const response = await fetch(
+        "https://astroapi-2.divineapi.com/indian-api/v2/find-chandrabalam-and-tarabalam",
+        {
+            method: "POST",
+            headers: {
+                Authorization: authToken,
+                "Content-Type":
+                    "application/x-www-form-urlencoded"
+            },
+            body: formData.toString()
+        }
+    );
 
-    tarabalam:
-      getBalamWindow({
-        values: tarabalamData,
-        target: userNakshatra,
-        upto: tarabalamData.upto,
-        dateStr,
-        key: "nakshatra"
-      }) || []
-  };
+    const json = await response.json();
+
+    const tarabalamData =
+        json?.data?.tarabalams;
+
+    const chandrabalamData =
+        json?.data?.chandrabalams;
+
+    if (
+        !tarabalamData ||
+        !chandrabalamData
+    ) {
+        return {
+            chandrabalam: [],
+            tarabalam: []
+        };
+    }
+
+    tarabalamData.current =
+        (tarabalamData.current || [])
+            .map(normalize);
+
+    tarabalamData.next =
+        (tarabalamData.next || [])
+            .map(normalize);
+
+    userNakshatra =
+        normalize(userNakshatra);
+
+    return {
+        chandrabalam:
+            getBalamWindow({
+                values: chandrabalamData,
+                target: userRasi,
+                upto: chandrabalamData.upto,
+                dateStr,
+                key: "rasi"
+            }) || [],
+
+        tarabalam:
+            getBalamWindow({
+                values: tarabalamData,
+                target: userNakshatra,
+                upto: tarabalamData.upto,
+                dateStr,
+                key: "nakshatra"
+            }) || []
+    };
 }
 
 function convert12hTo24h(time12h) {
@@ -755,9 +755,22 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 
 
     const disallowedwaras = ["Raviwara", "Somawara", "Shaniwara"];
-    const disallowedTithis = ["Pratipada", "Chaturthi", "Shasthi", "Saptami", "Ashtami", "Navami", "Dwadashi", "Chaturdashi", "Purnima","Amavasya"];
+    const disallowedTithis = ["Pratipada", "Chaturthi", "Shasthi", "Saptami", "Ashtami", "Navami", "Dwadashi", "Chaturdashi", "Purnima", "Amavasya"];
     const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
     const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
+
+    const waraList = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
+    const currentWeekday = waraList?.weekday;
+
+    if (
+        isNakshatraMarkedM(
+            currentWeekday,
+            userNakshatra
+        )
+    ) {
+        return null;
+    }
+
 
     // ✅ check chandrashtama
     const isChandrashtama = await isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place);
@@ -766,24 +779,60 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
         return null;
     }
 
+
+
     // ✅ fetch lists in parallel
     const [
         nakshatraList,
         tithiList,
         yogaList,
         karanaList,
-        waraList,
-        chandrabalamList,
-        tarabalamList,
+        balam
     ] = await Promise.all([
-        getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place),
-        getTithiDetailsForDate(dateStr, lat, lon, tzone, place),
-        getYogaDetailsForDate(dateStr, lat, lon, tzone, place),
-        getKaranaDetailsForDate(dateStr, lat, lon, tzone, place),
-        getWaraDetailsForDate(dateStr, lat, lon, tzone, place),
-        getChandrabalamTimings(dateStr, userRasi, lat, lon, tzone, place),
-        getTarabalamTimings(dateStr, userNakshatra, lat, lon, tzone, place),
+        getNakshatraTimingsForDate(
+            dateStr,
+            lat,
+            lon,
+            tzone,
+            place
+        ),
+        getTithiDetailsForDate(
+            dateStr,
+            lat,
+            lon,
+            tzone,
+            place
+        ),
+        getYogaDetailsForDate(
+            dateStr,
+            lat,
+            lon,
+            tzone,
+            place
+        ),
+        getKaranaDetailsForDate(
+            dateStr,
+            lat,
+            lon,
+            tzone,
+            place
+        ),
+        getBalamTimings(
+            dateStr,
+            userNakshatra,
+            userRasi,
+            lat,
+            lon,
+            tzone,
+            place
+        )
     ]);
+
+    const chandrabalamList =
+        balam.chandrabalam;
+
+    const tarabalamList =
+        balam.tarabalam;
 
     console.log("Fetching nakshatra timings for:", dateStr);
     console.log("Returned Nakshatras:", (nakshatraList || []).map(n => n.nakshatra));
@@ -919,39 +968,73 @@ export default async function runAuspiciousCheckAcrossDatesLandRegistration(from
         if (chunkEnd > toDate) chunkEnd.setTime(toDate.getTime());
 
         // Inner loop for daily iteration
-        let day = new Date(chunkStart);
-        while (day <= chunkEnd) {
-            const yyyy = day.getFullYear();
-            const mm = String(day.getMonth() + 1).padStart(2, "0");
-            const dd = String(day.getDate()).padStart(2, "0");
-            const currentDateStr = `${yyyy}-${mm}-${dd}`;
+        const CONCURRENCY = 10;
 
-            const { resultFiltered, resultCommon } = await getAuspiciousTimeWindow(
-                currentDateStr,
-                userNakshatra,
-                userRasi,
-                lat,
-                lon,
-                tzone,
-                place
+        // Build all dates in this month chunk
+        const dates = [];
+
+        let day = new Date(chunkStart);
+
+        while (day <= chunkEnd) {
+            dates.push(
+                `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`
             );
 
-            if (resultFiltered) {
-                resultsFiltered.push({
-                    date: currentDateStr,
-                    ...resultFiltered, // spread so frontend gets nakshatra, tithi, yoga, timerange directly
-                });
-            }
-
-            if (resultCommon) {
-                resultsCommon.push({
-                    date: currentDateStr,
-                    ...resultCommon,
-                });
-            }
-
-            // Move to next day
             day.setDate(day.getDate() + 1);
+        }
+
+        // Process dates in parallel batches
+        for (let i = 0; i < dates.length; i += CONCURRENCY) {
+            const batch = dates.slice(i, i + CONCURRENCY);
+
+            const batchResults = await Promise.all(
+                batch.map(async (currentDateStr) => {
+                    try {
+                        const result = await getAuspiciousTimeWindow(
+                            currentDateStr,
+                            userNakshatra,
+                            userRasi,
+                            lat,
+                            lon,
+                            tzone,
+                            place
+                        );
+                        if (!result) {
+                            return null;
+                        }
+
+                        return {
+                            date: currentDateStr,
+                            ...result
+                        };
+                    } catch (err) {
+                        console.error(
+                            `Error processing ${currentDateStr}`,
+                            err
+                        );
+
+                        return null;
+                    }
+                })
+            );
+
+            for (const item of batchResults) {
+                if (!item) continue;
+
+                if (item.resultFiltered) {
+                    resultsFiltered.push({
+                        date: item.date,
+                        ...item.resultFiltered
+                    });
+                }
+
+                if (item.resultCommon) {
+                    resultsCommon.push({
+                        date: item.date,
+                        ...item.resultCommon
+                    });
+                }
+            }
         }
 
         // Move to next month
