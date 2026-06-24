@@ -398,11 +398,11 @@ function getMasterTimeRange(filteredWara) {
   let masterStartTime;
 
   if (allowedFullDay.includes(weekday)) {
-    masterStartTime = `${date}T00:00:00`;
+    masterStartTime = `${date}T18:00:00`;
   }
 
   if (halfDay.includes(weekday)) {
-    masterStartTime = `${date}T12:00:00`;
+    masterStartTime = `${date}T23:59:59`;
   }
 
   if (sunsetStart.includes(weekday)) {
@@ -412,12 +412,12 @@ function getMasterTimeRange(filteredWara) {
 
   if (!masterStartTime) {
     console.warn(`⚠️ Unrecognized weekday '${weekday}', using fallback.`);
-    masterStartTime = `${date}T00:00:00`;
+    masterStartTime = `${date}T18:00:00`;
   }
 
   return {
     masterStartTime,
-    masterEndTime: `${date}T18:00:00`
+    masterEndTime: `${date}T23:59:59`
   };
 }
 

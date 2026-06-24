@@ -417,7 +417,7 @@ function getMasterTimeRange(filteredWara) {
 
   return {
     masterStartTime,
-    masterEndTime: `${date}T18:00:00`
+    masterEndTime: `${date}T13:00:00`
   };
 }
 

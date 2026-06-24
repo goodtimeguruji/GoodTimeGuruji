@@ -757,12 +757,11 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 
 
 
-    const disallowedwaras = ["Somawara","Shaniwara"];
+    const disallowedwaras = ["Shaniwara"];
     const disallowedTithis = ["Pratipada", "Chaturthi", "Shasthi", "Dashami","Chaturdashi", "Purnima","Amavasya"];
     const disallowedYogas = ["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"];
     const disallowedKaranas = ["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"];
-
-    const waraList = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
+const waraList = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
   const currentWeekday = waraList?.weekday;
 
   if (
@@ -936,7 +935,7 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
   // ⚠️ avoid duplicate discard just by date (since always same)
   if (resultFiltered && resultCommon) {
     if (resultFiltered.nakshatraStr === resultCommon.nakshatraStr &&
-        resultFiltered.timerange?.toString() === resultCommon.timerange?.toString()) {
+      resultFiltered.timerange?.toString() === resultCommon.timerange?.toString()) {
       resultFiltered = null;
     }
   }
@@ -946,76 +945,107 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 
 
 export default async function runAuspiciousCheckAcrossDatesSurgery(fromDateStr, toDateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
-    const resultsFiltered = [];
-    const resultsCommon = [];
+     const resultsFiltered = [];
+  const resultsCommon = [];
 
-    const parseDate = (str) => {
-        const [yyyy, mm, dd] = str.split("-").map(Number);
-        return new Date(yyyy, mm - 1, dd);
-    };
+  const parseDate = (str) => {
+    const [yyyy, mm, dd] = str.split("-").map(Number);
+    return new Date(yyyy, mm - 1, dd);
+  };
 
-    const fromDate = parseDate(fromDateStr);
-    const toDate = parseDate(toDateStr);
+  const fromDate = parseDate(fromDateStr);
+  const toDate = parseDate(toDateStr);
 
-    let current = new Date(fromDate);
+  let current = new Date(fromDate);
 
-    while (current <= toDate) {
-        const chunkStart = new Date(current);
-        const chunkEnd = new Date(
-            chunkStart.getFullYear(),
-            chunkStart.getMonth() + 1,
-            0
-        ); // last day of month
+  while (current <= toDate) {
+    const chunkStart = new Date(current);
+    const chunkEnd = new Date(
+      chunkStart.getFullYear(),
+      chunkStart.getMonth() + 1,
+      0
+    ); // last day of month
 
-        // Cap chunkEnd if it overshoots toDate
-        if (chunkEnd > toDate) chunkEnd.setTime(toDate.getTime());
+    // Cap chunkEnd if it overshoots toDate
+    if (chunkEnd > toDate) chunkEnd.setTime(toDate.getTime());
 
-        // Inner loop for daily iteration
-        let day = new Date(chunkStart);
-        while (day <= chunkEnd) {
-            const yyyy = day.getFullYear();
-            const mm = String(day.getMonth() + 1).padStart(2, "0");
-            const dd = String(day.getDate()).padStart(2, "0");
-            const currentDateStr = `${yyyy}-${mm}-${dd}`;
+    // Inner loop for daily iteration
+    const CONCURRENCY = 10;
 
-            const { resultFiltered, resultCommon } = await getAuspiciousTimeWindow(
-                currentDateStr,
-                userNakshatra,
-                userRasi,
-                lat,
-                lon,
-                tzone,
-                place
-            );
+// Build all dates in this month chunk
+const dates = [];
 
-            if (resultFiltered) {
-                resultsFiltered.push({
-                    date: currentDateStr,
-                    ...resultFiltered, // spread so frontend gets nakshatra, tithi, yoga, timerange directly
-                });
-            }
+let day = new Date(chunkStart);
 
-            if (resultCommon) {
-                resultsCommon.push({
-                    date: currentDateStr,
-                    ...resultCommon,
-                });
-            }
+while (day <= chunkEnd) {
+  dates.push(
+    `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`
+  );
 
-            // Move to next day
-            day.setDate(day.getDate() + 1);
-        }
+  day.setDate(day.getDate() + 1);
+}
 
-        // Move to next month
-        current = new Date(chunkEnd);
-        current.setDate(current.getDate() + 1);
+// Process dates in parallel batches
+for (let i = 0; i < dates.length; i += CONCURRENCY) {
+  const batch = dates.slice(i, i + CONCURRENCY);
+
+  const batchResults = await Promise.all(
+    batch.map(async (currentDateStr) => {
+      try {
+        const result = await getAuspiciousTimeWindow(
+          currentDateStr,
+          userNakshatra,
+          userRasi,
+          lat,
+          lon,
+          tzone,
+          place
+        );
+
+        return {
+          date: currentDateStr,
+          ...result
+        };
+      } catch (err) {
+        console.error(
+          `Error processing ${currentDateStr}`,
+          err
+        );
+
+        return null;
+      }
+    })
+  );
+
+  for (const item of batchResults) {
+    if (!item) continue;
+
+    if (item.resultFiltered) {
+      resultsFiltered.push({
+        date: item.date,
+        ...item.resultFiltered
+      });
     }
 
-    // ✅ Return both separately in structured JSON
-    return {
-        filtered: resultsFiltered,
-        common: resultsCommon,
-    };
+    if (item.resultCommon) {
+      resultsCommon.push({
+        date: item.date,
+        ...item.resultCommon
+      });
+    }
+  }
+}
+
+    // Move to next month
+    current = new Date(chunkEnd);
+    current.setDate(current.getDate() + 1);
+  }
+
+  // ✅ Return both separately in structured JSON
+  return {
+    filtered: resultsFiltered,
+    common: resultsCommon,
+  };
 
 }
 
