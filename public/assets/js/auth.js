@@ -41,8 +41,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   function showLoggedIn(username) {
     // Desktop
     if (loginBtn) loginBtn.style.display = "none";
-    if (userDropdown) userDropdown.style.display = "block";
+    if (userDropdown) userDropdown.style.display = "flex";
     if (usernameDisplay) usernameDisplay.textContent = username;
+    const desktopInitial = document.getElementById("usernameInitial");
+    if (desktopInitial) desktopInitial.textContent = username ? username.charAt(0).toUpperCase() : "U";
 
     // Mobile
     if (mobileLoginBtn) mobileLoginBtn.style.display = "none";

@@ -385,38 +385,10 @@ async function getKaranaDetailsForDate(dateStr, lat, lon, tzone, place) {
 
 
 function getMasterTimeRange(filteredWara) {
-  const { date, weekday, sunset } = filteredWara;
-
-  const allowedFullDay = [
-    "Somawara", "Mangalawara", "Budhawara",
-    "Guruwara", "Shukrawara", "Shaniwara", "Raviwara"
-  ];
-
-  const halfDay = [];
-  const sunsetStart = []; // Add "Shaniwara" if needed
-
-  let masterStartTime;
-
-  if (allowedFullDay.includes(weekday)) {
-    masterStartTime = `${date}T00:00:00`;
-  }
-
-  if (halfDay.includes(weekday)) {
-    masterStartTime = `${date}T12:00:00`;
-  }
-
-  if (sunsetStart.includes(weekday)) {
-    const sunset24h = convert12hTo24h(sunset.trim());
-    masterStartTime = `${date}T${sunset24h}`;
-  }
-
-  if (!masterStartTime) {
-    console.warn(`⚠️ Unrecognized weekday '${weekday}', using fallback.`);
-    masterStartTime = `${date}T00:00:00`;
-  }
+  const { date } = filteredWara;
 
   return {
-    masterStartTime,
+    masterStartTime: `${date}T00:00:00`,
     masterEndTime: `${date}T13:00:00`
   };
 }

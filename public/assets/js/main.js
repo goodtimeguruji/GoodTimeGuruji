@@ -187,3 +187,32 @@ function handleGoogleLogin(response) {
 
 
 
+
+
+// ================= USER NAV DROPDOWN =================
+
+document.addEventListener("DOMContentLoaded", function () {
+  const userDropdown = document.getElementById("userDropdown");
+  const userBtn = userDropdown ? userDropdown.querySelector(".user-nav-btn") : null;
+
+  if (userBtn) {
+    // Toggle open on click
+    userBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      userDropdown.classList.toggle("open");
+    });
+
+    // Close when clicking anywhere outside
+    document.addEventListener("click", function () {
+      userDropdown.classList.remove("open");
+    });
+
+    // Prevent clicks inside the menu from closing it
+    const userMenu = userDropdown.querySelector(".user-nav-menu");
+    if (userMenu) {
+      userMenu.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+    }
+  }
+});

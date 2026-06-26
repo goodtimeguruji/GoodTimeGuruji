@@ -306,6 +306,87 @@ body {
   color: #fff !important;
 }
 
+/* ── User nav dropdown (matches nav link style) ── */
+.user-nav-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.user-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  background-color: var(--dark-brown);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: 0.25s;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.user-nav-btn:hover {
+  background: var(--secondary-color);
+  color: #fff;
+}
+
+.user-nav-btn .user-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-nav-btn .chev-down {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.user-nav-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 140px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 8px;
+  display: none;
+  z-index: 100;
+}
+
+.user-nav-dropdown.open .user-nav-menu {
+  display: block;
+}
+
+.user-nav-menu a {
+  display: block;
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #333;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.user-nav-menu a:hover {
+  background: rgba(244, 196, 48, 0.18);
+  color: #000;
+}
+
 /* Mobile Menu Button (inside menu bar) */
 .menu-btn {
   display: none;
