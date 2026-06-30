@@ -356,7 +356,8 @@ support@goodtimeguruji.in">
       }
 
       const {
-        filtered,
+        filtered = [],
+        common = [],
         selectedFunction
       } = JSON.parse(storedData);
 
@@ -486,18 +487,31 @@ support@goodtimeguruji.in">
     `;
       }
 
-      // ✅ Best Time
-      container.innerHTML += createCard(
-        `Best Time for ${selectedFunction}`,
-        [filtered[0]]
-      );
+      // Build Best & Next Best exactly like the backend
 
-      // ✅ Next Best Time
-      container.innerHTML += createCard(
-        `Next Best Time for ${selectedFunction}`,
-        filtered.slice(1),
-        "secondary"
-      );
+      const bestItem = filtered[0] || common[0];
+
+      const nextBest = [
+        ...(filtered.length ? filtered.slice(1) : []),
+        ...(filtered.length ? common : common.slice(1))
+      ].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      // Best Time
+      if (bestItem) {
+        container.innerHTML += createCard(
+          `Best Time for ${selectedFunction}`,
+          [bestItem]
+        );
+      }
+
+      // Next Best Time
+      if (nextBest.length) {
+        container.innerHTML += createCard(
+          `Next Best Time for ${selectedFunction}`,
+          nextBest,
+          "secondary"
+        );
+      }
 
     });
   </script>
