@@ -12,8 +12,26 @@
     <link rel="stylesheet" href="./assets/fontawsome/css/all.min.css" />
     <link rel="stylesheet" href="./assets/fontawsome/css/fontawesome.min.css" />
     <link rel="stylesheet" href="./assets/css/bootstrap-icons.css" />
-    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD"></script>
+    <script src="./assets/js/toast.js"></script>
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeLJL4sAAAAALSqbioODckXsMfSyi_ZTshk0ZDD"></script>
     <script src="./assets/js/auth.js"></script>
+  <script>
+    // Keep the new Profile / Search History drawer links in sync with
+    // the existing logged-in/out state that auth.js controls via #mobileUserMenu.
+    (function syncDrawerExtraLinks() {
+      const menu = document.getElementById("mobileUserMenu");
+      const extras = document.querySelectorAll(".drawer-extra-link");
+      if (!menu || !extras.length) return;
+
+      function apply() {
+        const visible = menu.style.display !== "none";
+        extras.forEach(el => { el.style.display = visible ? "" : "none"; });
+      }
+
+      apply();
+      new MutationObserver(apply).observe(menu, { attributes: true, attributeFilter: ["style"] });
+    })();
+  </script>
 </head>
 
 <body>
@@ -61,12 +79,16 @@
 
                     <a href="about-us.html">About Us</a>
                     <a href="contact-us.html">Contact Us</a>
-                    <div class="dropdown ml-3" id="userDropdown" style="display:none;">
-                        <button class="btn btn-dark dropdown-toggle" data-toggle="dropdown">
+                    <div class="user-nav-dropdown" id="userDropdown" style="display:none;">
+                        <button class="user-nav-btn" type="button" aria-haspopup="true">
+                            <span class="user-initial" id="usernameInitial">U</span>
                             <span id="usernameDisplay">User</span>
+                            <span class="chev-down">&#x25BE;</span>
                         </button>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a class="dropdown-item" href="#" id="logoutBtn">Logout</a>
+                        <div class="user-nav-menu">
+                            <a href="profile.html"><i class="bi bi-person-circle me-2"></i>My Profile</a>
+                            <a href="search-history.html"><i class="bi bi-clock-history me-2"></i>Search History</a>
+                            <a href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
                         </div>
                     </div>
 
@@ -128,6 +150,8 @@
 
                 <a href="about-us.html" class="m-link">About Us</a>
                 <a href="contact-us.html" class="m-link">Contact Us</a>
+        <a href="profile.html" class="m-link drawer-extra-link" id="mobileProfileLink" style="display:none;"><i class="bi bi-person-circle me-2"></i>My Profile</a>
+        <a href="search-history.html" class="m-link drawer-extra-link" id="mobileHistoryLink" style="display:none;"><i class="bi bi-clock-history me-2"></i>Search History</a>
             </nav>
         </aside>
     </header>
@@ -373,7 +397,7 @@ document.getElementById("authForm").addEventListener("submit", async function (e
         const password = document.getElementById("password").value;
 
         if (!email || !password) {
-            alert("Please fill all required fields");
+            showToast("Please fill all required fields", "warning");
             isSubmitting = false;
             return;
         }
@@ -382,7 +406,7 @@ document.getElementById("authForm").addEventListener("submit", async function (e
             const confirmPassword = document.getElementById("confirmPassword").value;
 
             if (password !== confirmPassword) {
-                alert("Passwords do not match");
+                showToast("Passwords do not match", "warning");
                 isSubmitting = false;
                 return;
             }
@@ -390,7 +414,7 @@ document.getElementById("authForm").addEventListener("submit", async function (e
 
         // ✅ WAIT FOR CAPTCHA PROPERLY
         if (!window.grecaptcha) {
-            alert("reCAPTCHA not loaded");
+            showToast("reCAPTCHA not loaded. Please refresh and try again.", "error");
             isSubmitting = false;
             return;
         }
@@ -408,7 +432,7 @@ document.getElementById("authForm").addEventListener("submit", async function (e
         });
 
         if (!token) {
-            alert("Captcha failed. Try again.");
+            showToast("Captcha verification failed. Please try again.", "warning");
             isSubmitting = false;
             return;
         }
@@ -434,7 +458,31 @@ document.getElementById("authForm").addEventListener("submit", async function (e
         const result = await res.json();
 
         if (!res.ok) {
-            alert(result.message || "Error occurred");
+            // Signup succeeded but requires email verification — not an error state.
+            if (res.status === 201 && result.requiresVerification) {
+                showToast(result.message, "success");
+                toggleAuth("login");
+                isSubmitting = false;
+                return;
+            }
+
+            // Login blocked because the account hasn't verified its email yet.
+            if (res.status === 403 && result.requiresVerification) {
+                showToast(result.message || "Please verify your email before logging in.", "warning");
+                showResendVerification(email);
+                isSubmitting = false;
+                return;
+            }
+
+            showToast(result.message || "An error occurred. Please try again.", "error");
+            isSubmitting = false;
+            return;
+        }
+
+        // Signup response (no token yet — verification required)
+        if (mode === "signup") {
+            showToast(result.message || "Signup successful. Please check your email to verify your account.", "success");
+            toggleAuth("login");
             isSubmitting = false;
             return;
         }
@@ -448,11 +496,48 @@ document.getElementById("authForm").addEventListener("submit", async function (e
 
     } catch (err) {
         console.error(err);
-        alert("Something went wrong");
+        showToast("Something went wrong. Please try again.", "error");
     }
 
     isSubmitting = false;
 });
+
+// Shows a one-time "Resend verification email" link under the form
+// when login is blocked due to an unverified account.
+function showResendVerification(email) {
+    let box = document.getElementById("resendVerificationBox");
+    if (box) box.remove();
+
+    box = document.createElement("div");
+    box.id = "resendVerificationBox";
+    box.style.cssText = "text-align:center;margin-top:14px;font-size:13px;";
+    box.innerHTML = `
+        Didn't get the email?
+        <a href="#" id="resendVerificationLink" style="color:#8b5a2b;font-weight:600;text-decoration:underline;">
+            Resend verification link
+        </a>
+    `;
+
+    document.getElementById("authForm").appendChild(box);
+
+    document.getElementById("resendVerificationLink").addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.target.textContent = "Sending...";
+        try {
+            const res = await fetch(`${window.location.origin}/api/auth/resend-verification`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+            });
+            const result = await res.json();
+            showToast(result.message || "If the account exists, a new link has been sent.", "info");
+        } catch (err) {
+            console.error(err);
+            showToast("Could not resend verification email. Please try again later.", "error");
+        }
+        box.remove();
+    });
+}
 
 
         function handleGoogleLogin(response) {
@@ -468,19 +553,18 @@ document.getElementById("authForm").addEventListener("submit", async function (e
                 .then(res => res.json())
                 .then(data => {
                     if (!data.token) {
-                        alert("Google login failed");
+                        showToast("Google login failed. Please try again.", "error");
                         return;
                     }
 
-                     const expiry = Date.now() + (12 * 60 * 60 * 1000);
+                    const expiry = Date.now() + (12 * 60 * 60 * 1000);
 
                     localStorage.setItem("token", data.token);
                     localStorage.setItem("token_expiry", expiry);
-                    localStorage.setItem("userEmail", email);
                     window.location.href = "index.html";
                 })
                 .catch(() => {
-                    alert("Google login error");
+                    showToast("Google login failed. Please try again.", "error");
                 });
         }
     </script>

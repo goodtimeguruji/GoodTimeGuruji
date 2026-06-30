@@ -33,7 +33,25 @@
   <link rel="stylesheet" href="./assets/fontawsome/css/all.min.css" />
   <link rel="stylesheet" href="./assets/fontawsome/css/fontawesome.min.css" />
   <link rel="stylesheet" href="./assets/css/bootstrap-icons.css" />
+  <script src="./assets/js/toast.js"></script>
   <script src="./assets/js/auth.js"></script>
+  <script>
+    // Keep the new Profile / Search History drawer links in sync with
+    // the existing logged-in/out state that auth.js controls via #mobileUserMenu.
+    (function syncDrawerExtraLinks() {
+      const menu = document.getElementById("mobileUserMenu");
+      const extras = document.querySelectorAll(".drawer-extra-link");
+      if (!menu || !extras.length) return;
+
+      function apply() {
+        const visible = menu.style.display !== "none";
+        extras.forEach(el => { el.style.display = visible ? "" : "none"; });
+      }
+
+      apply();
+      new MutationObserver(apply).observe(menu, { attributes: true, attributeFilter: ["style"] });
+    })();
+  </script>
 
 </head>
 
@@ -89,7 +107,9 @@
               <span class="chev-down">&#x25BE;</span>
             </button>
             <div class="user-nav-menu">
-              <a href="#" id="logoutBtn">Logout</a>
+              <a href="profile.html"><i class="bi bi-person-circle me-2"></i>My Profile</a>
+              <a href="search-history.html"><i class="bi bi-clock-history me-2"></i>Search History</a>
+              <a href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
             </div>
           </div>
 
@@ -151,6 +171,10 @@
 
         <a href="about-us.html" class="m-link">About Us</a>
         <a href="contact-us.html" class="m-link">Contact Us</a>
+        <a href="profile.html" class="m-link drawer-extra-link" id="mobileProfileLink" style="display:none;"><i
+            class="bi bi-person-circle me-2"></i>My Profile</a>
+        <a href="search-history.html" class="m-link drawer-extra-link" id="mobileHistoryLink" style="display:none;"><i
+            class="bi bi-clock-history me-2"></i>Search History</a>
       </nav>
     </aside>
   </header>
@@ -283,9 +307,12 @@
                     <div class="col-md-8">
                       <select id="functionService" class="form-select af-input af-box" required>
                         <option value="" selected disabled>List of Functions</option>
-                        <option value="runAuspiciousCheckAcrossDatesAksharaaramba">Aksharaarambham / Initiation into Learning</option>
-                        <option value="runAuspiciousCheckAcrossDatesAnnaprasana">Annaprasana / First Feeding Ceremony</option>
-                        <option value="runAuspiciousCheckAcrossDatesArogyaSnanam">Arogya Snanam / Ritual Healing Bath</option>
+                        <option value="runAuspiciousCheckAcrossDatesAksharaaramba">Aksharaarambham / Initiation into
+                          Learning</option>
+                        <option value="runAuspiciousCheckAcrossDatesAnnaprasana">Annaprasana / First Feeding Ceremony
+                        </option>
+                        <option value="runAuspiciousCheckAcrossDatesArogyaSnanam">Arogya Snanam / Ritual Healing Bath
+                        </option>
 
                         <option value="runAuspiciousCheckAcrossDatesChildCradling">Child Cradling / Cradle Ceremony
                         </option>
@@ -380,8 +407,10 @@
                         </div>
 
                         <div class=" col-sm-12 col-md-6">
-                          <label class="small mb-1">To Date <span id="toDateHint" class="text-muted" style="font-size:11px; display:none;">(max 3 months)</span></label>
-                          <input type="text" id="toDate" class="form-control af-input af-datebox w-100" placeholder="— auto-set —" readonly disabled style="cursor:default;" />
+                          <label class="small mb-1">To Date <span id="toDateHint" class="text-muted"
+                              style="font-size:11px; display:none;">(max 3 months)</span></label>
+                          <input type="text" id="toDate" class="form-control af-input af-datebox w-100"
+                            placeholder="— auto-set —" readonly disabled style="cursor:default;" />
                           <input type="hidden" id="toDateValue" />
                         </div>
                       </div>
@@ -401,14 +430,16 @@
                     </div>
 
                     <div class="d-flex justify-content-center align-items-center gap-2 mb-3">
-                      <input type="checkbox" id="terms" required style="width:16px; height:16px; flex-shrink:0; cursor:pointer; accent-color:var(--dark-brown);" />
-                      <label for="terms" class="mb-0" style="font-size:14px; cursor:pointer; user-select:none;">
+                      <input type="checkbox" id="terms" required
+                        style="width:16px; height:16px; flex-shrink:0; cursor:pointer; accent-color:var(--dark-brown);" />
+                      <label for="terms" class="mb-0"
+                        style="font-size:14px; cursor:pointer; user-select:none; margin-left:6px;">
                         I agree to
                         <a href="#" data-toggle="modal" data-target="#termsModal">Terms &amp; Conditions</a>
                       </label>
                     </div>
 
-                    <button type="button" id="submitBtn" class="af-btn af-submit" disabled onclick="submitService()">
+                    <button type="button" id="submitBtn" class="af-btn af-submit" disabled>
                       <span id="btnText">Proceed to Pay</span>
                       <span id="btnLoader" class="spinner-border spinner-border-sm ms-2" style="display:none;"></span>
                     </button>
@@ -440,93 +471,224 @@
 
           <h6 class="fw-bold text-center mb-3">TERMS AND CONDITIONS</h6>
 
-          <p>This document is an electronic record in terms of the Information Technology Act, 2000 and rules there under in force, and the provisions pertaining to electronic records in various statutes as amended by the Information Technology Act, 2000 from time to time. This electronic record is generated by a computer system and does not require any physical or digital signatures for validation, consent or acceptance.</p>
+          <p>This document is an electronic record in terms of the Information Technology Act, 2000 and rules there
+            under in force, and the provisions pertaining to electronic records in various statutes as amended by the
+            Information Technology Act, 2000 from time to time. This electronic record is generated by a computer system
+            and does not require any physical or digital signatures for validation, consent or acceptance.</p>
 
-          <p>By using and/or visiting this application and/or using the services of Goodtimeguruji or by clicking "I accept/I agree", you signify your assent to these terms and conditions. If you do not agree to any of these terms, then please do not use the application or the services of Goodtimeguruji. By agreeing to these terms and conditions or by downloading, installing or otherwise using the services, you accept and agree to the terms and conditions herein.</p>
+          <p>By using and/or visiting this application and/or using the services of Goodtimeguruji or by clicking "I
+            accept/I agree", you signify your assent to these terms and conditions. If you do not agree to any of these
+            terms, then please do not use the application or the services of Goodtimeguruji. By agreeing to these terms
+            and conditions or by downloading, installing or otherwise using the services, you accept and agree to the
+            terms and conditions herein.</p>
 
-          <p>By using the services of Goodtimeguruji, you agree to be bound by this agreement. You are only authorized to use the services of Goodtimeguruji (regardless of whether your access or use is intended) if you agree to abide by all applicable laws and to this agreement.</p>
+          <p>By using the services of Goodtimeguruji, you agree to be bound by this agreement. You are only authorized
+            to use the services of Goodtimeguruji (regardless of whether your access or use is intended) if you agree to
+            abide by all applicable laws and to this agreement.</p>
 
-          <p>Please read this agreement carefully and save it. If you do not agree with it, you should leave the application and discontinue use of the services immediately. If you wish to make use of the services, you must read this agreement.</p>
+          <p>Please read this agreement carefully and save it. If you do not agree with it, you should leave the
+            application and discontinue use of the services immediately. If you wish to make use of the services, you
+            must read this agreement.</p>
 
-          <p>In order to participate in certain other services provided through the application, you will be notified that you are required to agree to additional terms and conditions. Goodtimeguruji may modify this agreement from time to time and such modification shall be effective immediately on updation of this agreement. You agree to be bound to any changes to this agreement when you use the services after any such modification is updated. It is therefore important that you review this agreement regularly upon each use of the services to ensure you are updated as to any changes. Goodtimeguruji reserves the right at its sole discretion, to change, modify, add or remove portions of these terms, at any time.</p>
+          <p>In order to participate in certain other services provided through the application, you will be notified
+            that you are required to agree to additional terms and conditions. Goodtimeguruji may modify this agreement
+            from time to time and such modification shall be effective immediately on updation of this agreement. You
+            agree to be bound to any changes to this agreement when you use the services after any such modification is
+            updated. It is therefore important that you review this agreement regularly upon each use of the services to
+            ensure you are updated as to any changes. Goodtimeguruji reserves the right at its sole discretion, to
+            change, modify, add or remove portions of these terms, at any time.</p>
 
           <h6 class="fw-bold mt-3">DEFINITIONS</h6>
-          <p><strong>BANK ACCOUNT:</strong> "Bank Account(s)" shall mean a bank account maintained by the user with a bank.</p>
-          <p><strong>GOODTIMEGURUJI / COMPANY:</strong> "Goodtimeguruji/company" shall mean Goodtimeguruji, a proprietorship having its office at Thanjavur District. It is neither providing the service nor selling any product by itself and plays absolutely no direct role in recommendations.</p>
-          <p><strong>APPLICATION / WEBSITE:</strong> "Application/Website" means Goodtimeguruji, the platform, the website application or the algorithm created, developed, designed and made available by Goodtimeguruji.</p>
-          <p><strong>Goodtimeguruji / WE:</strong> "Goodtimeguruji/WE" shall mean Goodtimeguruji, a proprietorship having its registered office at No 63, Mahadhana Street, Thiruvidaimaruthur, Thanjavur District – 612104 and shall include its affiliates.</p>
-          <p><strong>Good Time:</strong> Good Time is to find out a best time based on the Nakshatra (Birth Star) of the user for various functions/occasions.</p>
-          <p><strong>MOBILE PHONE NUMBER:</strong> "Mobile Phone Number" shall mean the number specified by the User during registration with Goodtimeguruji or during usage of the Application.</p>
-          <p><strong>PERSONAL INFORMATION:</strong> "Personal information" shall mean any information about the user provided by the user and obtained by Goodtimeguruji in relation to the application.</p>
-          <p><strong>USER ACCOUNT:</strong> "User Account" shall mean the registered Application account of the User with Goodtimeguruji for use of the Application and services offered by Goodtimeguruji.</p>
-          <p><strong>USER DATA:</strong> "User Data" shall include any data, information, pattern, behaviour, documents, materials, transactions and location, of the User.</p>
-          <p><strong>YOU / YOUR / USER:</strong> "You/Your/User" shall mean any person who accesses, downloads, installs, utilizes, operates or views the Application or Services offered by Goodtimeguruji.</p>
+          <p><strong>BANK ACCOUNT:</strong> "Bank Account(s)" shall mean a bank account maintained by the user with a
+            bank.</p>
+          <p><strong>GOODTIMEGURUJI / COMPANY:</strong> "Goodtimeguruji/company" shall mean Goodtimeguruji, a
+            proprietorship having its office at Thanjavur District. It is neither providing the service nor selling any
+            product by itself and plays absolutely no direct role in recommendations.</p>
+          <p><strong>APPLICATION / WEBSITE:</strong> "Application/Website" means Goodtimeguruji, the platform, the
+            website application or the algorithm created, developed, designed and made available by Goodtimeguruji.</p>
+          <p><strong>Goodtimeguruji / WE:</strong> "Goodtimeguruji/WE" shall mean Goodtimeguruji, a proprietorship
+            having its registered office at No 63, Mahadhana Street, Thiruvidaimaruthur, Thanjavur District – 612104 and
+            shall include its affiliates.</p>
+          <p><strong>Good Time:</strong> Good Time is to find out a best time based on the Nakshatra (Birth Star) of the
+            user for various functions/occasions.</p>
+          <p><strong>MOBILE PHONE NUMBER:</strong> "Mobile Phone Number" shall mean the number specified by the User
+            during registration with Goodtimeguruji or during usage of the Application.</p>
+          <p><strong>PERSONAL INFORMATION:</strong> "Personal information" shall mean any information about the user
+            provided by the user and obtained by Goodtimeguruji in relation to the application.</p>
+          <p><strong>USER ACCOUNT:</strong> "User Account" shall mean the registered Application account of the User
+            with Goodtimeguruji for use of the Application and services offered by Goodtimeguruji.</p>
+          <p><strong>USER DATA:</strong> "User Data" shall include any data, information, pattern, behaviour, documents,
+            materials, transactions and location, of the User.</p>
+          <p><strong>YOU / YOUR / USER:</strong> "You/Your/User" shall mean any person who accesses, downloads,
+            installs, utilizes, operates or views the Application or Services offered by Goodtimeguruji.</p>
 
           <h6 class="fw-bold mt-3">FACILITATION OF GOOD TIME</h6>
-          <p>Goodtimeguruji merely acts as a facilitator to find the best time for functions for the user as per the requirements of the user. Goodtimeguruji does not undertake any other services other than the facilitation.</p>
-          <p>The following fair disclosures are made by Goodtimeguruji for defining the relationship between Goodtimeguruji and the USER &amp; for limitation of liability:</p>
+          <p>Goodtimeguruji merely acts as a facilitator to find the best time for functions for the user as per the
+            requirements of the user. Goodtimeguruji does not undertake any other services other than the facilitation.
+          </p>
+          <p>The following fair disclosures are made by Goodtimeguruji for defining the relationship between
+            Goodtimeguruji and the USER &amp; for limitation of liability:</p>
           <ul>
-            <li>The User agrees that Goodtimeguruji is not liable for any action, liability, cost, claim, loss, damage, proceeding or expense suffered or incurred if directly or indirectly and is caused by any act of the User or ascribed to the User or any act/obligation by the User.</li>
-            <li>The User understands and agrees that the Good Time calculated are in accordance with the traditions prescribed by Hindu astrology/Panchangam and Goodtimeguruji is not responsible for any deviation from such traditions.</li>
+            <li>The User agrees that Goodtimeguruji is not liable for any action, liability, cost, claim, loss, damage,
+              proceeding or expense suffered or incurred if directly or indirectly and is caused by any act of the User
+              or ascribed to the User or any act/obligation by the User.</li>
+            <li>The User understands and agrees that the Good Time calculated are in accordance with the traditions
+              prescribed by Hindu astrology/Panchangam and Goodtimeguruji is not responsible for any deviation from such
+              traditions.</li>
           </ul>
 
           <h6 class="fw-bold mt-3">PAYMENT</h6>
-          <p>The consideration shall be paid by the User through the payment gateway provided by Goodtimeguruji subject to such terms and conditions as may be prescribed.</p>
+          <p>The consideration shall be paid by the User through the payment gateway provided by Goodtimeguruji subject
+            to such terms and conditions as may be prescribed.</p>
 
           <h6 class="fw-bold mt-3">REFUND</h6>
-          <p>The terms of refund by the user and refund to the User shall be in accordance with the following refund policy of Goodtimeguruji.</p>
+          <p>The terms of refund by the user and refund to the User shall be in accordance with the following refund
+            policy of Goodtimeguruji.</p>
           <ul>
             <li>User is permitted to use the application once after making the payment.</li>
-            <li>On successful completion of the payment, an online receipt will be generated by our website along with a confirmation mail. Please contact our support <a href="mailto:contact@goodtimeguruji.in">contact@goodtimeguruji.in</a> for any queries.</li>
+            <li>On successful completion of the payment, an online receipt will be generated by our website along with a
+              confirmation mail. Please contact our support <a
+                href="mailto:contact@goodtimeguruji.in">contact@goodtimeguruji.in</a> for any queries.</li>
           </ul>
 
           <h6 class="fw-bold mt-3">PROHIBITED USAGE / LIMITED RIGHT OF USE / LIMITED LICENCE</h6>
-          <p>Unless otherwise specified, all materials on the Application and Services are the property of Goodtimeguruji and are protected under copyright, trademark and other applicable laws.</p>
-          <p>The trademarks, service marks and logos of Goodtimeguruji and others used in the Application and Services ("Trademarks") are the property of Goodtimeguruji and their respective owners. The software, text, images, graphics, data, prices, trades, charts, graphs, video, and audio used on this Application belong to Goodtimeguruji. The trademarks and materials should not be copied, reproduced, modified, republished, uploaded, transmitted, collected or distributed in any form or by any means, whether manual or automated. Any unauthorized use of such property may violate copyright, trademark, and other applicable laws and could result in criminal or civil legal actions and penalties.</p>
-          <p>It is the User's responsibility for maintaining the confidentiality of user account information, user account password, bank account information, including your password/PIN, safeguarding your own money and for all activity including transactions that are posted to or made from your Account. If there is suspicious activity related to your Account, we may, but are not obligated, to request additional information from the User, including authenticating documents, and to freeze any transactions pending our review. The User is obligated to comply with these security requests, otherwise, Goodtimeguruji, at its sole discretion, may choose to terminate the User Account.</p>
+          <p>Unless otherwise specified, all materials on the Application and Services are the property of
+            Goodtimeguruji and are protected under copyright, trademark and other applicable laws.</p>
+          <p>The trademarks, service marks and logos of Goodtimeguruji and others used in the Application and Services
+            ("Trademarks") are the property of Goodtimeguruji and their respective owners. The software, text, images,
+            graphics, data, prices, trades, charts, graphs, video, and audio used on this Application belong to
+            Goodtimeguruji. The trademarks and materials should not be copied, reproduced, modified, republished,
+            uploaded, transmitted, collected or distributed in any form or by any means, whether manual or automated.
+            Any unauthorized use of such property may violate copyright, trademark, and other applicable laws and could
+            result in criminal or civil legal actions and penalties.</p>
+          <p>It is the User's responsibility for maintaining the confidentiality of user account information, user
+            account password, bank account information, including your password/PIN, safeguarding your own money and for
+            all activity including transactions that are posted to or made from your Account. If there is suspicious
+            activity related to your Account, we may, but are not obligated, to request additional information from the
+            User, including authenticating documents, and to freeze any transactions pending our review. The User is
+            obligated to comply with these security requests, otherwise, Goodtimeguruji, at its sole discretion, may
+            choose to terminate the User Account.</p>
 
           <h6 class="fw-bold mt-3">LIMITATION OF LIABILITY</h6>
-          <p>Goodtimeguruji shall not be held liable for any loss, damage or injury pertaining to use of the Application and services offered by Goodtimeguruji or its consequences and it shall be the sole risk of the user. The application and services provided by Goodtimeguruji are provided on an "as is", "where is" and "as available" basis. Goodtimeguruji expressly disclaims all warranties of any kind whether express or implied. Goodtimeguruji shall not be held liable for any defect, damage or vulnerability in the application, or loss to the user due to such defect, damage or vulnerability.</p>
-          <p>Goodtimeguruji does not warrant that your access to the application and/or related services will be uninterrupted or error-free, that defects will be corrected or that this website or the server that makes it available, is free of viruses or other harmful components.</p>
-          <p>Goodtimeguruji, its employees, agents or contractors, shall not be liable for and in respect of any loss or damage whether direct, indirect or consequential, including but not limited to loss of revenue, profit, business, contracts, anticipated savings or goodwill, loss of use or value of any equipment including software, whether foreseeable or not, suffered by the User or any person howsoever arising from the usage of the Application or the services of Goodtimeguruji.</p>
-          <p>Any loss incurred by the user due to use of the Application by any other person with an express or implied permission of the user. Goodtimeguruji shall not be held responsible for the confidentiality, secrecy and security of the personal or account information being sent through the Application for effecting the user's transactions.</p>
-          <p>Access to and use of the application and the information contained therein is at your own risk and Goodtimeguruji does not undertake any accountability for any irregularities, viruses or damage to any mobile phone or electronic device that results from accessing, availing or downloading of any information from the application or any other website of which link is provided herewith.</p>
-          <p>Goodtimeguruji makes no warranty or representation of any kind in relation to the system and the network or their function or performance or for any loss or damage whenever and howsoever suffered or incurred by the User or by any person resulting from or in connection with the Application.</p>
-          <p>Goodtimeguruji shall be absolved of any liability in case there is any unauthorized use of the User's access to Application, or Mobile Phone or for any fraudulent, duplicate or erroneous transaction initiated or requested or instructed by use of the User's application or mobile phone.</p>
-          <p>The User fully and unconditionally agrees that Goodtimeguruji and its directors, officers, employees, agents, sponsors, consultants, business partners or other representatives shall not be responsible or liable for any direct, indirect, incidental, consequential, special, exemplary, punitive or any other damages (including without limitation loss of profits, loss or corruption of data, loss of goodwill, work stoppage, computer failure or malfunction or interruption of business) under any contract, negligence, strict liability or other theory arising out of or relating in any way with the use of the application.</p>
-          <p>The User fully and unconditionally agrees and understands that a possibility exists that the application could include inaccuracies or errors and further that Goodtimeguruji shall not be held liable for any such inaccuracies or errors. In the event that such an inaccuracy arises, please inform Goodtimeguruji so that it can be corrected.</p>
-          <p>Goodtimeguruji does not make any personal recommendations. The information on the application is provided solely to enable the user to make their own decisions and does not constitute a recommendation to buy, sell or otherwise deal in any investments, securities, loans or money.</p>
-          <p>The User understands and agrees that no joint venture, partnership, employment or agency relationship exists between the user and Goodtimeguruji as a result of this agreement or on account of use of the application.</p>
-          <p>Goodtimeguruji does not make any guarantee that the Good Time will result in any result, tangible or intangible, real or imaginary, and the User agrees that the good time is calculated by the Astrology API based on Hindu Astrology/Panchangam traditions provided by a third party agency.</p>
+          <p>Goodtimeguruji shall not be held liable for any loss, damage or injury pertaining to use of the Application
+            and services offered by Goodtimeguruji or its consequences and it shall be the sole risk of the user. The
+            application and services provided by Goodtimeguruji are provided on an "as is", "where is" and "as
+            available" basis. Goodtimeguruji expressly disclaims all warranties of any kind whether express or implied.
+            Goodtimeguruji shall not be held liable for any defect, damage or vulnerability in the application, or loss
+            to the user due to such defect, damage or vulnerability.</p>
+          <p>Goodtimeguruji does not warrant that your access to the application and/or related services will be
+            uninterrupted or error-free, that defects will be corrected or that this website or the server that makes it
+            available, is free of viruses or other harmful components.</p>
+          <p>Goodtimeguruji, its employees, agents or contractors, shall not be liable for and in respect of any loss or
+            damage whether direct, indirect or consequential, including but not limited to loss of revenue, profit,
+            business, contracts, anticipated savings or goodwill, loss of use or value of any equipment including
+            software, whether foreseeable or not, suffered by the User or any person howsoever arising from the usage of
+            the Application or the services of Goodtimeguruji.</p>
+          <p>Any loss incurred by the user due to use of the Application by any other person with an express or implied
+            permission of the user. Goodtimeguruji shall not be held responsible for the confidentiality, secrecy and
+            security of the personal or account information being sent through the Application for effecting the user's
+            transactions.</p>
+          <p>Access to and use of the application and the information contained therein is at your own risk and
+            Goodtimeguruji does not undertake any accountability for any irregularities, viruses or damage to any mobile
+            phone or electronic device that results from accessing, availing or downloading of any information from the
+            application or any other website of which link is provided herewith.</p>
+          <p>Goodtimeguruji makes no warranty or representation of any kind in relation to the system and the network or
+            their function or performance or for any loss or damage whenever and howsoever suffered or incurred by the
+            User or by any person resulting from or in connection with the Application.</p>
+          <p>Goodtimeguruji shall be absolved of any liability in case there is any unauthorized use of the User's
+            access to Application, or Mobile Phone or for any fraudulent, duplicate or erroneous transaction initiated
+            or requested or instructed by use of the User's application or mobile phone.</p>
+          <p>The User fully and unconditionally agrees that Goodtimeguruji and its directors, officers, employees,
+            agents, sponsors, consultants, business partners or other representatives shall not be responsible or liable
+            for any direct, indirect, incidental, consequential, special, exemplary, punitive or any other damages
+            (including without limitation loss of profits, loss or corruption of data, loss of goodwill, work stoppage,
+            computer failure or malfunction or interruption of business) under any contract, negligence, strict
+            liability or other theory arising out of or relating in any way with the use of the application.</p>
+          <p>The User fully and unconditionally agrees and understands that a possibility exists that the application
+            could include inaccuracies or errors and further that Goodtimeguruji shall not be held liable for any such
+            inaccuracies or errors. In the event that such an inaccuracy arises, please inform Goodtimeguruji so that it
+            can be corrected.</p>
+          <p>Goodtimeguruji does not make any personal recommendations. The information on the application is provided
+            solely to enable the user to make their own decisions and does not constitute a recommendation to buy, sell
+            or otherwise deal in any investments, securities, loans or money.</p>
+          <p>The User understands and agrees that no joint venture, partnership, employment or agency relationship
+            exists between the user and Goodtimeguruji as a result of this agreement or on account of use of the
+            application.</p>
+          <p>Goodtimeguruji does not make any guarantee that the Good Time will result in any result, tangible or
+            intangible, real or imaginary, and the User agrees that the good time is calculated by the Astrology API
+            based on Hindu Astrology/Panchangam traditions provided by a third party agency.</p>
 
           <h6 class="fw-bold mt-3">FORCE MAJEURE</h6>
-          <p>It is hereby expressly declared that neither Goodtimeguruji nor the User will be liable for any delay or failure caused by conditions or events beyond the reasonable control of the respective party and the validity and enforceability of any remaining provisions shall not be affected by any such condition.</p>
+          <p>It is hereby expressly declared that neither Goodtimeguruji nor the User will be liable for any delay or
+            failure caused by conditions or events beyond the reasonable control of the respective party and the
+            validity and enforceability of any remaining provisions shall not be affected by any such condition.</p>
 
           <h6 class="fw-bold mt-3">INDEMNIFICATION</h6>
-          <p>To the full extent permitted by applicable law, the User hereby agrees to indemnify Goodtimeguruji, and its affiliates, officers, directors, agents, employees, and suppliers against any action, liability, cost, claim, loss, damage, proceeding or expense suffered or incurred if directly or not directly arising from your use of the Application and Services, or from your violation of these Terms of Use and applicable laws.</p>
+          <p>To the full extent permitted by applicable law, the User hereby agrees to indemnify Goodtimeguruji, and its
+            affiliates, officers, directors, agents, employees, and suppliers against any action, liability, cost,
+            claim, loss, damage, proceeding or expense suffered or incurred if directly or not directly arising from
+            your use of the Application and Services, or from your violation of these Terms of Use and applicable laws.
+          </p>
 
           <h6 class="fw-bold mt-3">TAXES</h6>
-          <p>It is the User's responsibility to determine, collect, report and submit any taxes applicable to the payments the User makes or receives in connection with the use of the Application and Services to the appropriate tax authority. Goodtimeguruji is not responsible for determining whether taxes apply to your transaction, or for collecting, reporting or remitting any taxes arising from any transaction. Further, Goodtimeguruji will collect from the User and deposit with the government, Goods and Services Tax @ 18% as applicable to the transactions.</p>
+          <p>It is the User's responsibility to determine, collect, report and submit any taxes applicable to the
+            payments the User makes or receives in connection with the use of the Application and Services to the
+            appropriate tax authority. Goodtimeguruji is not responsible for determining whether taxes apply to your
+            transaction, or for collecting, reporting or remitting any taxes arising from any transaction. Further,
+            Goodtimeguruji will collect from the User and deposit with the government, Goods and Services Tax @ 18% as
+            applicable to the transactions.</p>
 
           <h6 class="fw-bold mt-3">WAIVER</h6>
-          <p>Enforcement of the Terms is solely at our discretion and our failure to enforce a provision in some instances does not constitute a waiver of our right to enforce such provision in other instances.</p>
+          <p>Enforcement of the Terms is solely at our discretion and our failure to enforce a provision in some
+            instances does not constitute a waiver of our right to enforce such provision in other instances.</p>
 
           <h6 class="fw-bold mt-3">SUPPLEMENTAL TERMS</h6>
-          <p>Supplemental terms may apply to certain Services, such as policies for a particular event, activity or promotion, and such supplemental terms will be disclosed to the User in connection with the applicable Service(s). Supplemental terms are in addition to, and shall be deemed a part of, these Terms for the purposes of the applicable Service(s). Supplemental terms shall prevail over these Terms in the event of a conflict with respect to the applicable Services.</p>
+          <p>Supplemental terms may apply to certain Services, such as policies for a particular event, activity or
+            promotion, and such supplemental terms will be disclosed to the User in connection with the applicable
+            Service(s). Supplemental terms are in addition to, and shall be deemed a part of, these Terms for the
+            purposes of the applicable Service(s). Supplemental terms shall prevail over these Terms in the event of a
+            conflict with respect to the applicable Services.</p>
 
           <h6 class="fw-bold mt-3">INTELLECTUAL PROPERTY</h6>
-          <p>The Application and all software/algorithm/code/metadata contained in the Application, the contents, user interface, design and scheme of the Application, are proprietary to Goodtimeguruji and are protected by worldwide copyright and other intellectual property laws. Except as stated herein, none of the materials may be modified, copied, reproduced, distributed, republished, downloaded, displayed, sold, compiled, posted or transmitted in any form or by any means, including but not limited to, electronic, mechanical, photocopying, recording or other means, without the prior express written permission of Goodtimeguruji.</p>
-          <p>The User understands, acknowledges and agrees that Goodtimeguruji is the sole owner of all right, titles and interest including any and all intellectual property rights in the Application, website, design, software, interface, colour scheme, content, logos, trade names, brand names, designs, services and any such intellectual property used in connection with the platform.</p>
+          <p>The Application and all software/algorithm/code/metadata contained in the Application, the contents, user
+            interface, design and scheme of the Application, are proprietary to Goodtimeguruji and are protected by
+            worldwide copyright and other intellectual property laws. Except as stated herein, none of the materials may
+            be modified, copied, reproduced, distributed, republished, downloaded, displayed, sold, compiled, posted or
+            transmitted in any form or by any means, including but not limited to, electronic, mechanical, photocopying,
+            recording or other means, without the prior express written permission of Goodtimeguruji.</p>
+          <p>The User understands, acknowledges and agrees that Goodtimeguruji is the sole owner of all right, titles
+            and interest including any and all intellectual property rights in the Application, website, design,
+            software, interface, colour scheme, content, logos, trade names, brand names, designs, services and any such
+            intellectual property used in connection with the platform.</p>
 
           <h6 class="fw-bold mt-3">SUSPENSION, TERMINATION AND CANCELLATION</h6>
-          <p>The User may terminate this agreement with Goodtimeguruji, and close the User Account at any time, following the settlement of any pending transactions or any pending dues or outstanding amounts to Goodtimeguruji.</p>
-          <p>The User agrees that Goodtimeguruji may, by giving notice, in its sole discretion, terminate your access to the Application, Services and to your User Account; including without limitation, suspending or terminating the Service and User's Accounts, prohibiting access to the Application and its content, services and tools, delaying or removing hosted content, and taking technical and legal actions to keep Users off the Application if we reasonably perceive that such Users are creating problems, including without limitation, possible legal liabilities, infringement of the intellectual property rights, or acting inconsistently with the letter or spirit of these Terms of Use.</p>
-          <p>Notwithstanding the above, Goodtimeguruji may, in appropriate circumstances and at our sole discretion, suspend or terminate Accounts of Users for any reason, including without limitation (1) attempts to gain unauthorized access to the Application and Services, (2) overcoming software security features limiting use of or protecting any content, (3) usage of the Application and Services to perform illegal activities such as money laundering, illegal gambling operations, financing terrorism, or other criminal activities, (4) violations of these Terms of Use, (5) failure to pay or fraudulent payment for Transactions, (6) unexpected operational difficulties, or (7) upon the request of law enforcement or other government agencies, if deemed to be legitimate and compelling by Goodtimeguruji, acting in its sole discretion.</p>
+          <p>The User may terminate this agreement with Goodtimeguruji, and close the User Account at any time,
+            following the settlement of any pending transactions or any pending dues or outstanding amounts to
+            Goodtimeguruji.</p>
+          <p>The User agrees that Goodtimeguruji may, by giving notice, in its sole discretion, terminate your access to
+            the Application, Services and to your User Account; including without limitation, suspending or terminating
+            the Service and User's Accounts, prohibiting access to the Application and its content, services and tools,
+            delaying or removing hosted content, and taking technical and legal actions to keep Users off the
+            Application if we reasonably perceive that such Users are creating problems, including without limitation,
+            possible legal liabilities, infringement of the intellectual property rights, or acting inconsistently with
+            the letter or spirit of these Terms of Use.</p>
+          <p>Notwithstanding the above, Goodtimeguruji may, in appropriate circumstances and at our sole discretion,
+            suspend or terminate Accounts of Users for any reason, including without limitation (1) attempts to gain
+            unauthorized access to the Application and Services, (2) overcoming software security features limiting use
+            of or protecting any content, (3) usage of the Application and Services to perform illegal activities such
+            as money laundering, illegal gambling operations, financing terrorism, or other criminal activities, (4)
+            violations of these Terms of Use, (5) failure to pay or fraudulent payment for Transactions, (6) unexpected
+            operational difficulties, or (7) upon the request of law enforcement or other government agencies, if deemed
+            to be legitimate and compelling by Goodtimeguruji, acting in its sole discretion.</p>
 
           <h6 class="fw-bold mt-3">MISCELLANEOUS</h6>
-          <p>The management of User Data shall be in accordance with the terms of the Privacy Policy, which is made available to the User.</p>
-          <p>The User shall not assign or otherwise transfer rights or obligations under this agreement. Goodtimeguruji may assign our rights and duties under this agreement without any such assignment being considered a change to this agreement and without any notice to the User.</p>
-          <p>Any notices or other communications that the User wish to send to Goodtimeguruji may be addressed to <a href="mailto:contact@goodtimeguruji.in">contact@goodtimeguruji.in</a>.</p>
+          <p>The management of User Data shall be in accordance with the terms of the Privacy Policy, which is made
+            available to the User.</p>
+          <p>The User shall not assign or otherwise transfer rights or obligations under this agreement. Goodtimeguruji
+            may assign our rights and duties under this agreement without any such assignment being considered a change
+            to this agreement and without any notice to the User.</p>
+          <p>Any notices or other communications that the User wish to send to Goodtimeguruji may be addressed to <a
+              href="mailto:contact@goodtimeguruji.in">contact@goodtimeguruji.in</a>.</p>
 
           <hr />
         </div>
@@ -652,6 +814,13 @@
   <script src="./assets/js/main.js"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      document
+        .getElementById("submitBtn")
+        .addEventListener("click", submitService);
+    });
+  </script>
+  <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const btnText = document.getElementById("btnText");
 
@@ -681,7 +850,7 @@
       const toDateHint = document.getElementById("toDateHint");
 
       if (!fromDate || !toDate) {
-        alert("Date inputs not found");
+        showToast("Date inputs not found. Please refresh the page.", "error");
         return;
       }
 
@@ -738,8 +907,6 @@
     });
 
     document.addEventListener("DOMContentLoaded", function () {
-      const termsCheckbox = document.getElementById("terms");
-      const submitBtn = document.getElementById("submitBtn");
       const loginPromptMsg = document.getElementById("loginPromptMsg");
 
       // Check if user is logged in
@@ -749,24 +916,12 @@
         return token && expiry && Date.now() < parseInt(expiry);
       }
 
-      function updateSubmitState() {
-        if (!isLoggedIn()) {
-          // Not logged in — show prompt, keep submit disabled regardless of checkbox
-          if (loginPromptMsg) loginPromptMsg.style.display = "block";
-          submitBtn.disabled = true;
-          termsCheckbox.disabled = true;
-        } else {
-          if (loginPromptMsg) loginPromptMsg.style.display = "none";
-          termsCheckbox.disabled = false;
-          submitBtn.disabled = !termsCheckbox.checked;
-        }
+      // Just show/hide the login prompt — actual validation (login, terms,
+      // service selection) happens inside submitService() when the button
+      // is clicked, so the button itself is never left in a stuck/disabled state.
+      if (loginPromptMsg) {
+        loginPromptMsg.style.display = isLoggedIn() ? "none" : "block";
       }
-
-      updateSubmitState();
-
-      termsCheckbox.addEventListener("change", function () {
-        submitBtn.disabled = !this.checked;
-      });
     });
   </script>
   <script>
@@ -774,28 +929,21 @@
 
       const acceptBtn = document.getElementById("acceptTermsBtn");
       const mainCheckbox = document.getElementById("terms");
-      const submitBtn = document.getElementById("submitBtn");
 
       // When user clicks Accept & Continue
-      acceptBtn.addEventListener("click", function () {
+      if (acceptBtn && mainCheckbox) {
+        acceptBtn.addEventListener("click", function () {
+          // ✅ Tick checkbox
+          mainCheckbox.checked = true;
 
-        // ✅ Tick checkbox
-        mainCheckbox.checked = true;
-
-        // ✅ Enable submit
-        submitBtn.disabled = false;
-
-        // ✅ Close modal (Bootstrap 4)
-        $('#termsModal').modal('hide');
-      });
-
-      // Enable/disable submit manually
-      mainCheckbox.addEventListener("change", function () {
-        submitBtn.disabled = !this.checked;
-      });
+          // ✅ Close modal (Bootstrap 4)
+          $('#termsModal').modal('hide');
+        });
+      }
 
     });
   </script>
+
   <script>
     const API_BASE_URL = window.location.origin;
 
@@ -804,7 +952,7 @@
       const token = localStorage.getItem("token");
 
       if (!token) {
-        alert("Please login before proceeding with payment.");
+        showToast("Please log in before proceeding.", "warning");
         window.location.href = "login.html";
         return;
       }
@@ -854,7 +1002,8 @@
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("token")}`
             },
             body: JSON.stringify({
               currency: currencyUser,
@@ -882,7 +1031,8 @@
                 {
                   method: "POST",
                   headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
                   },
                   body: JSON.stringify({
                     razorpay_payment_id: response.razorpay_payment_id,
@@ -1066,7 +1216,9 @@
         "muhuratResults",
         JSON.stringify({
           ...responseData,
-          selectedFunction: functionName
+          selectedFunction: functionName,
+          // requestId comes back from the server so search history can link to it
+          requestId: responseData.requestId || null
         })
       );
 
@@ -1086,7 +1238,84 @@
       $("#loadingModal").modal("hide");
     }
   </script>
+  <script>
+    // ================= SUBMIT BUTTON VALIDATION =================
 
+    document.addEventListener("DOMContentLoaded", () => {
+
+      const submitBtn = document.getElementById("submitBtn");
+
+      function updateSubmitButton() {
+
+        const location =
+          document.getElementById("locationInput").value.trim();
+
+        const lat =
+          document.getElementById("lat").value.trim();
+
+        const lon =
+          document.getElementById("lon").value.trim();
+
+        const timezone =
+          document.getElementById("timezone").value.trim();
+
+        const nakshatra =
+          document.getElementById("nakshatram").value;
+
+        const rasi =
+          document.getElementById("rasi").value;
+
+        const service =
+          document.getElementById("functionService").value;
+
+        const fromDate =
+          document.getElementById("fromDate").value;
+
+        const terms =
+          document.getElementById("terms").checked;
+
+        const loggedIn =
+          localStorage.getItem("token") &&
+          localStorage.getItem("token_expiry") &&
+          Date.now() < Number(localStorage.getItem("token_expiry"));
+
+        submitBtn.disabled = !(
+          loggedIn &&
+          location &&
+          lat &&
+          lon &&
+          timezone &&
+          nakshatra &&
+          rasi &&
+          service &&
+          fromDate &&
+          terms
+        );
+      }
+
+      [
+        "locationInput",
+        "nakshatram",
+        "rasi",
+        "functionService",
+        "fromDate",
+        "terms"
+      ].forEach(id => {
+
+        const el = document.getElementById(id);
+
+        if (!el) return;
+
+        el.addEventListener("change", updateSubmitButton);
+        el.addEventListener("input", updateSubmitButton);
+      });
+
+      // make available globally
+      window.updateSubmitButton = updateSubmitButton;
+
+      updateSubmitButton();
+    });
+  </script>
 </body>
 
 </html>

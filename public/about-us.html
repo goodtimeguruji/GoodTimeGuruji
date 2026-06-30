@@ -88,7 +88,9 @@
               <span class="chev-down">&#x25BE;</span>
             </button>
             <div class="user-nav-menu">
-              <a href="#" id="logoutBtn">Logout</a>
+              <a href="profile.html"><i class="bi bi-person-circle me-2"></i>My Profile</a>
+              <a href="search-history.html"><i class="bi bi-clock-history me-2"></i>Search History</a>
+              <a href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
             </div>
           </div>
 
@@ -150,6 +152,8 @@
 
         <a href="about-us.html" class="m-link">About Us</a>
         <a href="contact-us.html" class="m-link">Contact Us</a>
+        <a href="profile.html" class="m-link drawer-extra-link" id="mobileProfileLink" style="display:none;"><i class="bi bi-person-circle me-2"></i>My Profile</a>
+        <a href="search-history.html" class="m-link drawer-extra-link" id="mobileHistoryLink" style="display:none;"><i class="bi bi-clock-history me-2"></i>Search History</a>
       </nav>
     </aside>
   </header>
@@ -785,6 +789,23 @@ support@goodtimeguruji.in">
   <script src="./assets/js/bootstrap.min.js"></script>
   <script src="./assets/js/main.js"></script>
   <script src="./assets/js/auth.js"></script>
+  <script>
+    // Keep the new Profile / Search History drawer links in sync with
+    // the existing logged-in/out state that auth.js controls via #mobileUserMenu.
+    (function syncDrawerExtraLinks() {
+      const menu = document.getElementById("mobileUserMenu");
+      const extras = document.querySelectorAll(".drawer-extra-link");
+      if (!menu || !extras.length) return;
+
+      function apply() {
+        const visible = menu.style.display !== "none";
+        extras.forEach(el => { el.style.display = visible ? "" : "none"; });
+      }
+
+      apply();
+      new MutationObserver(apply).observe(menu, { attributes: true, attributeFilter: ["style"] });
+    })();
+  </script>
 </body>
 
 </html>

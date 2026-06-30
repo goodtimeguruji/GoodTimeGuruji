@@ -150,6 +150,10 @@ function selectLocation(index) {
 
   suggestionBox.innerHTML = "";
   suggestionBox.classList.remove("visible");
+
+  if (window.updateSubmitButton) {
+    window.updateSubmitButton();
+  }
 }
 
 
@@ -175,12 +179,12 @@ function handleGoogleLogin(response) {
         localStorage.setItem("token_expiry", expiry);
         window.location.href = "index.html";
       } else {
-        alert("Google login failed");
+        if (window.showToast) showToast("Google login failed. Please try again.", "error"); else console.error("Google login failed");
       }
     })
     .catch(err => {
       console.error(err);
-      alert("Google login failed");
+      if (window.showToast) showToast("Google login failed. Please try again.", "error"); else console.error("Google login failed");
     });
 }
 
