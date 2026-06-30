@@ -99,8 +99,8 @@ app.use(cors({ origin: ALLOWED_ORIGIN, methods: ["GET","POST","PUT","DELETE"], a
 app.disable("x-powered-by");
 
 // 5. Body parsers
-app.use(express.json({ limit: "10kb" }));
-app.use(express.urlencoded({ extended: false, limit: "10kb" }));
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 
 // 6. Sanitize (NoSQL injection)
 //app.use(mongoSanitize());
