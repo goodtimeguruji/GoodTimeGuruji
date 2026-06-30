@@ -7,7 +7,6 @@ import { fileURLToPath } from "url";
 import cors            from "cors";
 import helmet          from "helmet";
 import rateLimit       from "express-rate-limit";
-//import mongoSanitize   from "express-mongo-sanitize";
 import { runAuspiciousCheckAcrossDatesModel } from "./models/models.js";
 import { initDB }      from "./services/db.js";
 import { verifyToken } from "./services/authMiddleware.js";
@@ -102,8 +101,7 @@ app.disable("x-powered-by");
 app.use(express.json({ limit: "100kb" }));
 app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 
-// 6. Sanitize (NoSQL injection)
-//app.use(mongoSanitize());
+
 
 // (hpp removed — incompatible with Express 5: req.query is read-only)
 
