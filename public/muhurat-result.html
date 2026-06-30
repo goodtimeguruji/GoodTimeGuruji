@@ -21,9 +21,11 @@
     .detail-row--block {
       align-items: flex-start !important;
     }
+
     .detail-value--wide {
       flex: 1;
     }
+
     .lagna-table {
       width: 100%;
       border-collapse: separate;
@@ -33,38 +35,47 @@
       overflow: hidden;
       font-size: 0.92rem;
     }
+
     .lagna-table thead tr {
-      background: rgba(var(--primary-rgb, 139,90,43), 0.12);
+      background: rgba(var(--primary-rgb, 139, 90, 43), 0.12);
     }
+
     .lagna-table thead th {
       padding: 7px 14px;
       font-weight: 600;
       text-align: left;
       color: var(--primary-color, #8b5a2b);
-      border-bottom: 1px solid rgba(var(--primary-rgb, 139,90,43), 0.2);
+      border-bottom: 1px solid rgba(var(--primary-rgb, 139, 90, 43), 0.2);
       white-space: nowrap;
     }
+
     .lagna-table tbody tr {
       transition: background 0.15s;
     }
+
     .lagna-table tbody tr:nth-child(even) {
-      background: rgba(var(--primary-rgb, 139,90,43), 0.04);
+      background: rgba(var(--primary-rgb, 139, 90, 43), 0.04);
     }
+
     .lagna-table tbody tr:hover {
-      background: rgba(var(--primary-rgb, 139,90,43), 0.09);
+      background: rgba(var(--primary-rgb, 139, 90, 43), 0.09);
     }
+
     .lagna-table td {
       padding: 7px 14px;
-      border-bottom: 1px solid rgba(var(--primary-rgb, 139,90,43), 0.08);
+      border-bottom: 1px solid rgba(var(--primary-rgb, 139, 90, 43), 0.08);
     }
+
     .lagna-table tbody tr:last-child td {
       border-bottom: none;
     }
+
     .lagna-time {
       font-family: monospace;
       font-size: 0.93rem;
       white-space: nowrap;
     }
+
     .lagna-sign {
       font-weight: 600;
       color: var(--primary-color, #8b5a2b);
@@ -191,8 +202,10 @@
 
         <a href="about-us.html" class="m-link">About Us</a>
         <a href="contact-us.html" class="m-link">Contact Us</a>
-        <a href="profile.html" class="m-link drawer-extra-link" id="mobileProfileLink" style="display:none;"><i class="bi bi-person-circle me-2"></i>My Profile</a>
-        <a href="search-history.html" class="m-link drawer-extra-link" id="mobileHistoryLink" style="display:none;"><i class="bi bi-clock-history me-2"></i>Search History</a>
+        <a href="profile.html" class="m-link drawer-extra-link" id="mobileProfileLink" style="display:none;"><i
+            class="bi bi-person-circle me-2"></i>My Profile</a>
+        <a href="search-history.html" class="m-link drawer-extra-link" id="mobileHistoryLink" style="display:none;"><i
+            class="bi bi-clock-history me-2"></i>Search History</a>
       </nav>
     </aside>
   </header>
@@ -370,17 +383,17 @@ support@goodtimeguruji.in">
       function mapItem(item) {
         const timeSlots = (item.timerange || []).map(t => {
           const start = (t.start_time || "").split(" ")[1] || t.start_time || "";
-          const end   = (t.end_time   || "").split(" ")[1] || t.end_time   || "";
+          const end = (t.end_time || "").split(" ")[1] || t.end_time || "";
           const lagna = t.targetSign || t.lagnaSign || "";
           return { start, end, lagna };
         });
         return {
-          date:      item.date ? formatDate(item.date) : "—",
-          day:       item.wara ? `${item.wara} (${varaMap[item.wara] || item.wara})` : "—",
+          date: item.date ? formatDate(item.date) : "—",
+          day: item.wara ? `${item.wara} (${varaMap[item.wara] || item.wara})` : "—",
           nakshatra: item.nakshatraStr || "—",
-          tithi:     item.tithiStr  || "—",
-          yoga:      item.yogaStr   || "—",
-          karana:    item.karanaStr || "—",
+          tithi: item.tithiStr || "—",
+          yoga: item.yogaStr || "—",
+          karana: item.karanaStr || "—",
           timeSlots  // [{ start, end, lagna }]
         };
       }
@@ -508,7 +521,8 @@ support@goodtimeguruji.in">
               Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
-              results: storedData.filtered,
+              filtered: storedData.filtered || [],
+              common: storedData.common || [],
               selectedFunction: storedData.selectedFunction
             })
           }
