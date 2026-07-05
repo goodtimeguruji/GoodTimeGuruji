@@ -294,25 +294,30 @@ async function getPlanetaryPositions(dateStr, timeStr, lat, lon, tzone, place) {
   return json?.data?.planets || [];
 }
 
-// ── House validation (Nakshatra Lord / Sub-Lord rule) ─────────
+// ── House validation (Jupiter / Venus rule, by planet `name`) ──
 
-const BENEFIC_LORDS = new Set(["Jupiter", "Venus"]);
+const BENEFIC_PLANETS = new Set(["Jupiter", "Venus"]);
+const MALEFIC_PLANETS = new Set([
+  "Moon", "Sun", "Mars", "Mercury", "Saturn",
+  "Rahu", "Ketu", "Uranus", "Neptune", "Pluto"
+]);
 
 /**
  * Given a list of planets and the target zodiac sign (e.g. "Leo"),
- * find the planet(s) occupying that sign and validate their nakshatra_lord
- * and sub_lord fields.
+ * find the planet(s) occupying that sign (the configured Nth Place Lagna)
+ * and validate using ONLY the API's `name` field.
  *
- * Accept if ANY of the following is true for the planet in that sign:
- *   • nakshatra_lord is empty / missing
- *   • sub_lord       is empty / missing
- *   • nakshatra_lord contains Jupiter or Venus (alone or combined)
- *   • sub_lord       contains Jupiter or Venus (alone or combined)
+ * Accept if:
+ *   • the occupant's name is Jupiter, OR
+ *   • the occupant's name is Venus, OR
+ *   • no planet occupies the target sign at all
  *
- * Reject only when neither nakshatra_lord nor sub_lord contains Jupiter/Venus
- * AND both are non-empty.
+ * Reject if the occupant's name is one of the listed malefics
+ * (Moon, Sun, Mars, Mercury, Saturn, Rahu, Ketu, Uranus, Neptune, Pluto)
+ * and neither Jupiter nor Venus is also present in that sign.
  *
- * If the sign has NO planet occupying it → accept (empty house is fine).
+ * `sign`, `house`, `nakshatra_lord`, and `sub_lord` are never consulted here.
+ * The Ascendant is ignored completely.
  */
 function isNthHouseAcceptable(planets, targetSign) {
   // Find planets whose sign matches the Nth house sign (exclude Ascendant)
@@ -320,20 +325,17 @@ function isNthHouseAcceptable(planets, targetSign) {
     p => p.sign === targetSign && p.name !== "Ascendant"
   );
 
-  if (!occupants.length) return true; // empty house → accepted
+  if (!occupants.length) return true; // no planet returned → accepted
 
-  // At least ONE occupant must pass; if any passes, the house is valid
-  return occupants.some(planet => {
-    const nLord = (planet.nakshatra_lord || "").trim();
-    const sLord = (planet.sub_lord       || "").trim();
+  // If Jupiter or Venus is present in the house, accept regardless of
+  // any other occupant.
+  if (occupants.some(p => BENEFIC_PLANETS.has(p.name))) return true;
 
-    if (!nLord || !sLord) return true; // empty field → accepted
+  // Otherwise, reject only if a listed malefic is present.
+  if (occupants.some(p => MALEFIC_PLANETS.has(p.name))) return false;
 
-    const nLordOk = [...BENEFIC_LORDS].some(b => nLord.includes(b));
-    const sLordOk = [...BENEFIC_LORDS].some(b => sLord.includes(b));
-
-    return nLordOk || sLordOk;
-  });
+  // Any other/unrecognized planet name: no rejection rule applies.
+  return true;
 }
 
 // ── Core lagna filter ─────────────────────────────────────────
@@ -349,7 +351,7 @@ function isNthHouseAcceptable(planets, targetSign) {
  *       – once at the exact sub-interval start time
  *       – once at the exact sub-interval end time
  *  5. A sub-interval is VALID only if BOTH API calls pass the
- *     nakshatra_lord / sub_lord validation rule.
+ *     Jupiter/Venus `name`-field validation rule.
  *  6. Invalid sub-intervals are removed entirely (start, end, and lagna sign).
  *  7. If no sub-interval survives, the parent interval is dropped.
  *
@@ -712,7 +714,7 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
     log(dateStr, `${label} — after blocking: ${afterBlocked.length} interval(s) remain`);
 
     // Apply Udaya Lagna + Planetary Position filter.
-    // Intervals where NO lagna's Nth house passes nakshatra_lord/sub_lord
+    // Intervals where NO lagna's Nth house passes the Jupiter/Venus `name`
     // validation are dropped entirely. Kept intervals carry targetSigns[]
     // (the accepted house signs) for frontend display.
     const validIntervals = udayLagnaList.length

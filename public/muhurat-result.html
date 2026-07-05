@@ -374,18 +374,41 @@ support@goodtimeguruji.in">
         Shukrawara: "Friday",
         Shaniwara: "Saturday"
       };
+      // Reused from the Rasi/Lagna dropdown on muhurat-finder.html
+      const rasiLocalMap = {
+        Aries: "Mesham", Taurus: "Rishabam", Gemini: "Mithunam",
+        Cancer: "Kadagam", Leo: "Simham", Virgo: "Kanni",
+        Libra: "Thulam", Scorpio: "Vrischikam", Sagittarius: "Dhanusu",
+        Capricorn: "Makaram", Aquarius: "Kumbam", Pisces: "Meenam"
+      };
+      function ordinalSuffix(n) {
+        const rem100 = n % 100;
+        if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
+        switch (n % 10) {
+          case 1: return `${n}st`;
+          case 2: return `${n}nd`;
+          case 3: return `${n}rd`;
+          default: return `${n}th`;
+        }
+      }
+      function formatLagnaDisplay(sign, lagnaPlace) {
+        if (!sign) return "";
+        const local = rasiLocalMap[sign];
+        const signLabel = local ? `${sign} (${local})` : sign;
+        return lagnaPlace ? `${signLabel} (${ordinalSuffix(lagnaPlace)} Place)` : signLabel;
+      }
       function formatDate(dateStr) {
         const [year, month, day] = dateStr.split("-");
         return `${day}-${month}-${year}`;
       }
 
       // Convert API data → UI-ready object.
-      // timerange entries are per-lagna sub-intervals: { start_time, end_time, targetSign, lagnaSign }
+      // timerange entries are per-lagna sub-intervals: { start_time, end_time, targetSign, lagnaSign, lagnaPlace }
       function mapItem(item) {
         const timeSlots = (item.timerange || []).map(t => {
           const start = (t.start_time || "").split(" ")[1] || t.start_time || "";
           const end = (t.end_time || "").split(" ")[1] || t.end_time || "";
-          const lagna = t.targetSign || t.lagnaSign || "";
+          const lagna = formatLagnaDisplay(t.targetSign || t.lagnaSign || "", t.lagnaPlace);
           return { start, end, lagna };
         });
         return {

@@ -37,6 +37,32 @@ const varaMap = {
   Shukrawara: "Friday", Shaniwara: "Saturday",
 };
 
+// ── Rasi/Lagna local names (reused from the muhurat-finder.html dropdown) ─────
+const rasiLocalMap = {
+  Aries: "Mesham", Taurus: "Rishabam", Gemini: "Mithunam",
+  Cancer: "Kadagam", Leo: "Simham", Virgo: "Kanni",
+  Libra: "Thulam", Scorpio: "Vrischikam", Sagittarius: "Dhanusu",
+  Capricorn: "Makaram", Aquarius: "Kumbam", Pisces: "Meenam",
+};
+
+function ordinalSuffix(n) {
+  const rem100 = n % 100;
+  if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
+
+function formatLagnaDisplay(sign, lagnaPlace) {
+  if (!sign) return "";
+  const local = rasiLocalMap[sign];
+  const signLabel = local ? `${sign} (${local})` : sign;
+  return lagnaPlace ? `${signLabel} (${ordinalSuffix(lagnaPlace)} Place)` : signLabel;
+}
+
 // ── Build time+lagna mini-table (mirrors the lagna-table on the results page) ─
 function renderTimeLagnaTable(timerange = []) {
   if (!timerange.length) {
@@ -48,8 +74,8 @@ function renderTimeLagnaTable(timerange = []) {
     const end   = extractTime(t.end_time);
     const signs = Array.isArray(t.targetSigns) && t.targetSigns.length
       ? t.targetSigns
-      : [t.targetSign || t.lagnaSign || "—"];
-    const lagna = signs.join(", ");
+      : [t.targetSign || t.lagnaSign || ""];
+    const lagna = signs.map(s => formatLagnaDisplay(s, t.lagnaPlace)).filter(Boolean).join(", ") || "—";
     const bg    = i % 2 === 1 ? C.rowAlt : C.white;
     return `
       <tr style="background:${bg};">
