@@ -81,6 +81,11 @@
       color: var(--primary-color, #8b5a2b);
       white-space: nowrap;
     }
+
+    .lagna-place {
+      color: var(--text-color, #4a4a4a);
+      white-space: nowrap;
+    }
   </style>
 </head>
 
@@ -355,11 +360,14 @@ support@goodtimeguruji.in">
         return;
       }
 
-      const {
-        filtered = [],
-        common = [],
-        selectedFunction
-      } = JSON.parse(storedData);
+      let filtered, selectedFunction;
+      try {
+        ({ filtered, selectedFunction } = JSON.parse(storedData));
+      } catch (err) {
+        console.error("Muhurat results: failed to parse stored data", err);
+        container.innerHTML = "<p class='text-danger text-center'>Something went wrong reading your results. Please search again.</p>";
+        return;
+      }
 
       if (!filtered || filtered.length === 0) {
         container.innerHTML = "<p class='text-warning text-center'>No auspicious time found</p>";
@@ -374,28 +382,30 @@ support@goodtimeguruji.in">
         Shukrawara: "Friday",
         Shaniwara: "Saturday"
       };
-      // Reused from the Rasi/Lagna dropdown on muhurat-finder.html
-      const rasiLocalMap = {
-        Aries: "Mesham", Taurus: "Rishabam", Gemini: "Mithunam",
-        Cancer: "Kadagam", Leo: "Simham", Virgo: "Kanni",
-        Libra: "Thulam", Scorpio: "Vrischikam", Sagittarius: "Dhanusu",
-        Capricorn: "Makaram", Aquarius: "Kumbam", Pisces: "Meenam"
+
+      // Backend sends the Rasi/Lagna sign as its English name only (Aries, Taurus, ...).
+      // For display we show the English name followed by the Tamil name in brackets,
+      // matching the pairing already used in the Rasi dropdown on the finder page
+      // (e.g. "Aries (Mesham)").
+      const rasiMap = {
+        Aries: "Mesham",
+        Taurus: "Rishabam",
+        Gemini: "Mithunam",
+        Cancer: "Kadagam",
+        Leo: "Simham",
+        Virgo: "Kanni",
+        Libra: "Thulam",
+        Scorpio: "Vrischikam",
+        Sagittarius: "Dhanusu",
+        Capricorn: "Makaram",
+        Aquarius: "Kumbam",
+        Pisces: "Meenam"
       };
-      function ordinalSuffix(n) {
-        const rem100 = n % 100;
-        if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
-        switch (n % 10) {
-          case 1: return `${n}st`;
-          case 2: return `${n}nd`;
-          case 3: return `${n}rd`;
-          default: return `${n}th`;
-        }
-      }
-      function formatLagnaDisplay(sign, lagnaPlace) {
-        if (!sign) return "";
-        const local = rasiLocalMap[sign];
-        const signLabel = local ? `${sign} (${local})` : sign;
-        return lagnaPlace ? `${signLabel} (${ordinalSuffix(lagnaPlace)} Place)` : signLabel;
+      function formatRasi(sign) {
+        const clean = String(sign == null ? "" : sign).trim();
+        if (!clean) return "";
+        const other = rasiMap[clean];
+        return other ? `${clean} (${other})` : clean;
       }
       function formatDate(dateStr) {
         const [year, month, day] = dateStr.split("-");
@@ -403,13 +413,32 @@ support@goodtimeguruji.in">
       }
 
       // Convert API data → UI-ready object.
-      // timerange entries are per-lagna sub-intervals: { start_time, end_time, targetSign, lagnaSign, lagnaPlace }
+      // timerange entries are per-lagna sub-intervals: { start_time, end_time, targetSign, lagnaSign }
       function mapItem(item) {
-        const timeSlots = (item.timerange || []).map(t => {
+        const timeSlots = (Array.isArray(item.timerange) ? item.timerange : []).map(t => {
           const start = (t.start_time || "").split(" ")[1] || t.start_time || "";
           const end = (t.end_time || "").split(" ")[1] || t.end_time || "";
-          const lagna = formatLagnaDisplay(t.targetSign || t.lagnaSign || "", t.lagnaPlace);
-          return { start, end, lagna };
+          const lagnaRaw = String(
+            (Array.isArray(t.targetSigns) ? t.targetSigns.join(", ") : "") ||
+            t.targetSign ||
+            t.lagnaSign ||
+            ""
+          );
+          // lagnaRaw may hold a single sign or several comma-separated signs —
+          // format each one individually as "English (Tamil)".
+          const lagna = lagnaRaw
+            ? lagnaRaw.split(",").map(formatRasi).join(", ")
+            : "";
+          // Lagna Place: wherever the backend sends it (field name varies by
+          // event/function), shown as its own column when present.
+          const lagnaPlace = String(
+            t.lagnaPlace ||
+            t.targetPlace ||
+            t.lagnaLocation ||
+            t.place ||
+            ""
+          );
+          return { start, end, lagna, lagnaPlace };
         });
         return {
           date: item.date ? formatDate(item.date) : "—",
@@ -422,22 +451,39 @@ support@goodtimeguruji.in">
         };
       }
 
-      // Build the inline time+lagna table rows
+      // Build the inline time (+ lagna, + lagna place — each only when present) table rows.
+      // The backend sometimes returns plain time windows with no lagna at all
+      // (targetSigns/targetSign/lagnaSign all empty), and lagna place is only
+      // sent for some events/functions. We only show a column if at least one
+      // slot actually has a value for it, so we never render an empty column
+      // of dashes.
       function renderTimeSlots(slots) {
         if (!slots.length) return `<span class="detail-value text-muted">No valid intervals</span>`;
+
+        const hasLagna = slots.some(s => s.lagna && s.lagna.trim() !== "");
+        const hasPlace = slots.some(s => s.lagnaPlace && s.lagnaPlace.trim() !== "");
+
+        const columns = [
+          { label: "Time Window", cell: s => `<td class="lagna-time">${s.start}&nbsp;→&nbsp;${s.end}</td>` }
+        ];
+        if (hasLagna) {
+          columns.push({ label: "Lagna", cell: s => `<td class="lagna-sign">${s.lagna || "—"}</td>` });
+        }
+        if (hasPlace) {
+          columns.push({ label: "Lagna Place", cell: s => `<td class="lagna-place">${s.lagnaPlace || "—"}</td>` });
+        }
+
         return `
           <table class="lagna-table">
             <thead>
               <tr>
-                <th>Time Window</th>
-                <th>Lagna</th>
+                ${columns.map(c => `<th>${c.label}</th>`).join("")}
               </tr>
             </thead>
             <tbody>
               ${slots.map(s => `
                 <tr>
-                  <td class="lagna-time">${s.start}&nbsp;→&nbsp;${s.end}</td>
-                  <td class="lagna-sign">${s.lagna || "—"}</td>
+                  ${columns.map(c => c.cell(s)).join("")}
                 </tr>`).join("")}
             </tbody>
           </table>`;
@@ -510,30 +556,22 @@ support@goodtimeguruji.in">
     `;
       }
 
-      // Build Best & Next Best exactly like the backend
-
-      const bestItem = filtered[0] || common[0];
-
-      const nextBest = [
-        ...(filtered.length ? filtered.slice(1) : []),
-        ...(filtered.length ? common : common.slice(1))
-      ].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-      // Best Time
-      if (bestItem) {
+      try {
+        // ✅ Best Time
         container.innerHTML += createCard(
           `Best Time for ${selectedFunction}`,
-          [bestItem]
+          [filtered[0]]
         );
-      }
 
-      // Next Best Time
-      if (nextBest.length) {
+        // ✅ Next Best Time
         container.innerHTML += createCard(
           `Next Best Time for ${selectedFunction}`,
-          nextBest,
+          filtered.slice(1),
           "secondary"
         );
+      } catch (err) {
+        console.error("Muhurat results: failed to render results", err);
+        container.innerHTML = "<p class='text-danger text-center'>We couldn't display these results. Please try your search again.</p>";
       }
 
     });
@@ -558,8 +596,7 @@ support@goodtimeguruji.in">
               Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
-              filtered: storedData.filtered || [],
-              common: storedData.common || [],
+              results: storedData.filtered,
               selectedFunction: storedData.selectedFunction
             })
           }

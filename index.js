@@ -40,6 +40,7 @@ import runAuspiciousCheckAcrossDatesLandRegistration from "./services/LandRegist
 import runAuspiciousCheckAcrossDatesExamFees         from "./services/ExamFees.js";
 import runAuspiciousCheckAcrossDatesNamakarana       from "./services/Namakarana.js";
 import runAuspiciousCheckAcrossDatesShantimuhurtam   from "./services/Shantimuhurtam.js";
+import runAuspiciousCheckAcrossDatesSeemantham   from "./services/Seemantham.js";
 import { sendContactUsEmail }      from "./services/contactusemail.js";
 import authRoutes                  from "./services/authRoutes.js";
 import { createOrder, verifyPayment } from "./services/razorpayService.js";
@@ -223,6 +224,7 @@ setupRoute("/runAuspiciousCheckAcrossDatesCuttingGrains",    runAuspiciousCheckA
 setupRoute("/runAuspiciousCheckAcrossDatesLandRegistration", runAuspiciousCheckAcrossDatesLandRegistration);
 setupRoute("/runAuspiciousCheckAcrossDatesExamFees",         runAuspiciousCheckAcrossDatesExamFees);
 setupRoute("/runAuspiciousCheckAcrossDatesShantimuhurtam",   runAuspiciousCheckAcrossDatesShantimuhurtam);
+setupRoute("/runAuspiciousCheckAcrossDatesSeemantham",       runAuspiciousCheckAcrossDatesSeemantham);
 
 // 14. Payment + email routes (verifyToken added to create-order and verify-payment)
 app.post("/api/create-order",        verifyToken, createOrder);

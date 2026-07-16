@@ -1,7 +1,14 @@
 // ============================================================
-//  muhurat-core.js  –  shared engine for all muhurat functions
+//  muhurat-core-without-udaylagna.js  –  shared engine for muhurat
+//  functions that do NOT require Udaya Lagna processing.
 //  Each ceremony file imports { runAuspiciousCheck } and passes
 //  its own secondNakshatraList + disallowedTithis config.
+//
+//  This variant keeps only the original Muhurat filtering
+//  (Nakshatra, Vara, Yoga, Karana, Chandrabalam, Tarabalam,
+//  Andhrashtama/Chandrashtama, etc.) and returns the Muhurat
+//  immediately after those filters. It never calls the Udaya
+//  Lagna API or the Planetary Position API.
 // ============================================================
 
 const API_KEY    = process.env.DIVINE_API_KEY    || "a3a1ab378702c90ccc523c59a888f28b";
@@ -47,13 +54,6 @@ const NAKSHATRA_NORMALIZE_MAP = {
   "Poorva Ashadha": "Purva Ashada",
   "Uttara Ashadha": "Uttara Ashada"
 };
-
-// Zodiac sign order (used for lagna place counting)
-const ZODIAC_SIGNS = [
-  "Aries", "Taurus", "Gemini", "Cancer",
-  "Leo", "Virgo", "Libra", "Scorpio",
-  "Sagittarius", "Capricorn", "Aquarius", "Pisces"
-];
 
 // ── helpers ──────────────────────────────────────────────────
 
@@ -231,348 +231,6 @@ async function getInauspiciousTimingsForDate(dateStr, lat, lon, tzone, place) {
   return { date: dateStr, rahu_kaal: json.data.rahu_kaal, yamaganda: json.data.yamaganda, dur_muhurtam: json.data.dur_muhurtam };
 }
 
-// ── Uday Lagna + Lagna Place check ───────────────────────────
-
-async function getUdayLagna(dateStr, lat, lon, tzone, place) {
-  log(dateStr, "Fetching uday lagna");
-  const res  = await fetch("https://astroapi-3.divineapi.com/indian-api/v1/uday-lagna", {
-    method: "POST", headers: authHeaders(), body: buildFormData(dateStr, place, lat, lon, tzone)
-  });
-  const json = await res.json();
-  const list = json?.data?.uday_lagna || [];
-  log(dateStr, `Uday lagna → ${list.length} segments: ${list.map(l => l.sign).join(", ")}`);
-  return list;
-}
-
-// Given a datetime string, find which lagna sign is active at that moment.
-function getLagnaSignAtTime(udayLagnaList, timeStr) {
-  const target = new Date(timeStr.includes("T") ? timeStr : timeStr.replace(" ", "T"));
-  for (const entry of udayLagnaList) {
-    const start = new Date(entry.start_time.replace(" ", "T"));
-    const end   = new Date(entry.end_time.replace(" ", "T"));
-    if (target >= start && target <= end) return entry.sign;
-  }
-  return null;
-}
-
-// Count `place` steps forward from startSign (1-based, wrapping around 12 signs).
-function getNthSign(startSign, place) {
-  const idx = ZODIAC_SIGNS.indexOf(startSign);
-  if (idx === -1) return null;
-  return ZODIAC_SIGNS[(idx + place - 1) % 12];
-}
-
-// ── Planetary Position API ────────────────────────────────────
-
-/**
- * Fetch planetary positions for a specific date+time from the Divine API.
- * timeStr format: "HH:MM:SS"
- */
-async function getPlanetaryPositions(dateStr, timeStr, lat, lon, tzone, place) {
-  const [hour, min, sec] = timeStr.split(":").map(Number);
-  const { day, month, year } = buildDateParams(dateStr);
-  const form = new FormData();
-  form.append("api_key",   API_KEY);
-  form.append("day",       day);
-  form.append("month",     month);
-  form.append("year",      year);
-  form.append("hour",      String(hour));
-  form.append("min",       String(min));
-  form.append("sec",       String(sec));
-  form.append("Place",     place);
-  form.append("lat",       lat);
-  form.append("lon",       lon);
-  form.append("tzone",     tzone);
-  form.append("lan",       "en");
-  form.append("full_name", "User");
-  form.append("gender",    "male");
-
-  const res  = await fetch("https://astroapi-3.divineapi.com/indian-api/v1/planetary-positions", {
-    method: "POST", headers: authHeaders(), body: form
-  });
-  const json = await res.json();
-  return json?.data?.planets || [];
-}
-
-// ── House validation (Jupiter / Venus rule, by planet `name`) ──
-
-const BENEFIC_PLANETS = new Set(["Jupiter", "Venus"]);
-const MALEFIC_PLANETS = new Set([
-  "Moon", "Sun", "Mars", "Mercury", "Saturn",
-  "Rahu", "Ketu", "Uranus", "Neptune", "Pluto"
-]);
-
-/**
- * Given a list of planets and the target house NUMBER (e.g. 8),
- * find the planet(s) actually occupying that house at this exact moment
- * (per the API's own `house` field for this query) and validate using
- * the API's `name` field.
- *
- * Accept if:
- *   • the occupant's name is Jupiter, OR
- *   • the occupant's name is Venus, OR
- *   • no planet occupies the target house at all
- *
- * Reject if the occupant's name is one of the listed malefics
- * (Moon, Sun, Mars, Mercury, Saturn, Rahu, Ketu, Uranus, Neptune, Pluto)
- * and neither Jupiter nor Venus is also present in that house.
- *
- * `sign`, `nakshatra_lord`, and `sub_lord` are never consulted here.
- * The Ascendant entry is ignored completely.
- */
-function isNthHouseAcceptable(planets, targetHouse) {
-  // Find planets whose house matches the target house number (exclude Ascendant)
-  const occupants = planets.filter(
-    p => Number(p.house) === Number(targetHouse) && p.name !== "Ascendant"
-  );
-
-  if (!occupants.length) return true; // no planet returned → accepted
-
-  // If Jupiter or Venus is present in the house, accept regardless of
-  // any other occupant.
-  if (occupants.some(p => BENEFIC_PLANETS.has(p.name))) return true;
-
-  // Otherwise, reject only if a listed malefic is present.
-  if (occupants.some(p => MALEFIC_PLANETS.has(p.name))) return false;
-
-  // Any other/unrecognized planet name: no rejection rule applies.
-  return true;
-}
-
-// ── Single-moment house check + boundary search ────────────────
-
-const BOUNDARY_STEP_MS = 10 * 60 * 1000; // 10 minutes
-
-function toTimeStr(d) { return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
-
-/**
- * Check whether the configured house is acceptable at one exact moment.
- * `targetHouse` is the raw house NUMBER (e.g. 8) — validated against the
- * API's own `house` field, not derived sign-arithmetic.
- */
-async function checkLagnaMoment(dateStr, timeStr, targetHouse, lat, lon, tzone, place, lagnaLabel) {
-  const planets = await getPlanetaryPositions(dateStr, timeStr, lat, lon, tzone, place);
-  const ok = isNthHouseAcceptable(planets, targetHouse);
-  log(dateStr, `      moment check (${timeStr}) house${targetHouse}${lagnaLabel ? ` [${lagnaLabel}]` : ""} → ${ok ? "✅" : "❌"}`);
-  return ok;
-}
-
-/**
- * Search forward in 10-minute steps from (fromDate, fromTime) up to and
- * including (limitDate, limitTime), returning the first Date at which the
- * house check passes. Returns null if nothing in the range passes.
- */
-async function findValidBoundaryForward(fromDate, fromTime, limitDate, limitTime, targetHouse, lat, lon, tzone, place, dateStr) {
-  // fromTime has already been checked (and failed) by the caller, so the
-  // search begins 10 minutes later — never re-test the same failing moment.
-  let cur   = new Date(new Date(`${fromDate}T${fromTime}`).getTime() + BOUNDARY_STEP_MS);
-  const end = new Date(`${limitDate}T${limitTime}`);
-
-  while (cur <= end) {
-    const d = formatDateStr(cur);
-    const t = toTimeStr(cur);
-    const ok = await checkLagnaMoment(d, t, targetHouse, lat, lon, tzone, place, "fwd-search");
-    if (ok) return cur;
-    cur = new Date(cur.getTime() + BOUNDARY_STEP_MS);
-  }
-  log(dateStr, `      forward search exhausted — no valid start found between ${fromTime} and ${limitTime}`);
-  return null;
-}
-
-/**
- * Search backward in 10-minute steps from (fromDate, fromTime) down to and
- * including (limitDate, limitTime), returning the first Date (walking
- * backward) at which the house check passes. Returns null if nothing in
- * the range passes.
- */
-async function findValidBoundaryBackward(fromDate, fromTime, limitDate, limitTime, targetHouse, lat, lon, tzone, place, dateStr) {
-  // fromTime has already been checked (and failed) by the caller, so the
-  // search begins 10 minutes earlier — never re-test the same failing moment.
-  let cur     = new Date(new Date(`${fromDate}T${fromTime}`).getTime() - BOUNDARY_STEP_MS);
-  const limit = new Date(`${limitDate}T${limitTime}`);
-
-  while (cur >= limit) {
-    const d = formatDateStr(cur);
-    const t = toTimeStr(cur);
-    const ok = await checkLagnaMoment(d, t, targetHouse, lat, lon, tzone, place, "bwd-search");
-    if (ok) return cur;
-    cur = new Date(cur.getTime() - BOUNDARY_STEP_MS);
-  }
-  log(dateStr, `      backward search exhausted — no valid end found between ${fromTime} and ${limitTime}`);
-  return null;
-}
-
-// ── Core lagna filter ─────────────────────────────────────────
-
-/**
- * Final Udaya Lagna + Planetary Position filter.
- *
- * For each already-filtered interval (post all Muhurat filters):
- *  1. Find every Udaya Lagna segment overlapping the interval.
- *  2. Split the interval into per-lagna sub-intervals (clipped to the interval).
- *  3. `lagnaPlace` (e.g. 8) is the actual house NUMBER to validate —
- *     checked against the API's own `house` field at each queried moment,
- *     not derived via sign arithmetic from the Udaya Lagna sign.
- *  4. Call the Planetary Position API at the sub-interval start time and
- *     at the sub-interval end time.
- *  5. If the START check fails, search FORWARD in 10-minute steps (up to
- *     the sub-interval end) for the first passing moment, and use that as
- *     the new start. If nothing passes, the sub-interval is discarded.
- *  6. If the END check fails, search BACKWARD in 10-minute steps (down to
- *     the — possibly already-adjusted — start) for the first passing
- *     moment, and use that as the new end. If nothing passes, the
- *     sub-interval is discarded.
- *  7. If the adjusted start >= adjusted end, the sub-interval is discarded.
- *  8. If no sub-interval survives, the parent interval is dropped.
- *
- * Each surviving sub-interval in the output carries:
- *   start_time  – adjusted sub-interval start (HH:MM:SS boundary)
- *   end_time    – adjusted sub-interval end   (HH:MM:SS boundary)
- *   lagnaSign   – Udaya Lagna sign for this sub-interval
- *   targetSign  – Nth house sign, kept for display only (not used in validation)
- *   targetSigns – [targetSign]  (array form for frontend compat)
- *   lagnaPlace  – the house N validated (e.g. 8)
- */
-const LAGNA_CONCURRENCY = 5;
-
-async function filterByLagnaPlace(validIntervals, dateStr, udayLagnaList, lagnaPlace, lat, lon, tzone, place) {
-  const passed = [];
-
-  for (const interval of validIntervals) {
-    const intervalStart = new Date(interval.start_time.replace(" ", "T"));
-    const intervalEnd   = new Date(interval.end_time.replace(" ", "T"));
-
-    // 1. Every Udaya Lagna segment that overlaps this muhurat interval
-    const overlapping = udayLagnaList.filter(entry => {
-      const s = new Date(entry.start_time.replace(" ", "T"));
-      const e = new Date(entry.end_time.replace(" ", "T"));
-      return s < intervalEnd && e > intervalStart;
-    });
-
-    if (!overlapping.length) {
-      logWarn(dateStr, `No lagna segments overlap ${interval.start_time} → ${interval.end_time} — dropping interval`);
-      continue;
-    }
-
-    log(dateStr,
-      `Lagna split: ${interval.start_time} → ${interval.end_time} | ` +
-      `lagnas=[${overlapping.map(e => e.sign).join(", ")}]`
-    );
-
-    // 2. Build per-lagna sub-intervals clipped to the muhurat interval
-    const subIntervals = overlapping.map(entry => {
-      const lagnaStart = new Date(entry.start_time.replace(" ", "T"));
-      const lagnaEnd   = new Date(entry.end_time.replace(" ", "T"));
-
-      const subStart = new Date(Math.max(lagnaStart, intervalStart));
-      const subEnd   = new Date(Math.min(lagnaEnd,   intervalEnd));
-
-      return {
-        startDate:  formatDateStr(subStart),
-        endDate:    formatDateStr(subEnd),
-        startTime:  toTimeStr(subStart),
-        endTime:    toTimeStr(subEnd),
-        startFull:  formatDateTime(subStart),
-        endFull:    formatDateTime(subEnd),
-        lagnaSign:  entry.sign,
-        targetSign: getNthSign(entry.sign, lagnaPlace) // display-only; validation uses lagnaPlace (house number) directly
-      };
-    });
-
-    // 3–7. Validate each sub-interval against house `lagnaPlace`, adjusting
-    // (or discarding) boundaries that fail.
-    const validSubIntervals = [];
-
-    for (let i = 0; i < subIntervals.length; i += LAGNA_CONCURRENCY) {
-      const batch = subIntervals.slice(i, i + LAGNA_CONCURRENCY);
-
-      const results = await Promise.all(
-        batch.map(async sub => {
-          const { startDate, endDate, startTime, endTime, lagnaSign, targetSign } = sub;
-
-          log(dateStr,
-            `  → Sub-interval ${startTime}→${endTime} | lagna=${lagnaSign} | validating house${lagnaPlace}`
-          );
-
-          // Original start check
-          const okStart = await checkLagnaMoment(startDate, startTime, lagnaPlace, lat, lon, tzone, place, lagnaSign);
-          let foundStart = new Date(`${startDate}T${startTime}`);
-
-          if (!okStart) {
-            log(dateStr, `    Start (${startTime}) FAILS house${lagnaPlace} — searching forward in 10-min steps`);
-            const adjusted = await findValidBoundaryForward(
-              startDate, startTime, endDate, endTime, lagnaPlace, lat, lon, tzone, place, dateStr
-            );
-            if (!adjusted) {
-              log(dateStr, `  → ❌ DISCARDED — no valid start found for sub-interval ${startTime}→${endTime} (lagna=${lagnaSign})`);
-              return null;
-            }
-            foundStart = adjusted;
-            log(dateStr, `    Adjusted start → ${toTimeStr(foundStart)}`);
-          }
-
-          // Original end check
-          const okEnd = await checkLagnaMoment(endDate, endTime, lagnaPlace, lat, lon, tzone, place, lagnaSign);
-          let foundEnd = new Date(`${endDate}T${endTime}`);
-
-          if (!okEnd) {
-            log(dateStr, `    End (${endTime}) FAILS house${lagnaPlace} — searching backward in 10-min steps`);
-            const adjusted = await findValidBoundaryBackward(
-              endDate, endTime, formatDateStr(foundStart), toTimeStr(foundStart), lagnaPlace, lat, lon, tzone, place, dateStr
-            );
-            if (!adjusted) {
-              log(dateStr, `  → ❌ DISCARDED — no valid end found for sub-interval ${startTime}→${endTime} (lagna=${lagnaSign})`);
-              return null;
-            }
-            foundEnd = adjusted;
-            log(dateStr, `    Adjusted end → ${toTimeStr(foundEnd)}`);
-          }
-
-          if (foundStart >= foundEnd) {
-            log(dateStr, `  → ❌ DISCARDED — adjusted start (${toTimeStr(foundStart)}) >= adjusted end (${toTimeStr(foundEnd)})`);
-            return null;
-          }
-
-          const startFull = formatDateTime(foundStart);
-          const endFull   = formatDateTime(foundEnd);
-
-          log(dateStr,
-            `  → ✅ PASS — final sub-interval ${toTimeStr(foundStart)} → ${toTimeStr(foundEnd)} | lagna=${lagnaSign} | house${lagnaPlace}`
-          );
-
-          return {
-            ...interval,             // carry through the parent's non-time metadata
-            start_time:  startFull,
-            end_time:    endFull,
-            lagnaSign,
-            targetSign,
-            targetSigns: [targetSign],
-            lagnaPlace
-          };
-        })
-      );
-
-      for (const r of results) {
-        if (r) validSubIntervals.push(r);
-      }
-    }
-
-    // 7. Keep only the valid sub-intervals; drop whole interval if none survive
-    if (!validSubIntervals.length) {
-      log(dateStr, `❌ Interval dropped — all lagna sub-intervals failed: ${interval.start_time} → ${interval.end_time}`);
-      continue;
-    }
-
-    log(dateStr,
-      `✅ Interval kept — ${validSubIntervals.length} valid sub-interval(s): ` +
-      validSubIntervals.map(s => `${s.start_time}→${s.end_time} (${s.targetSign})`).join(", ")
-    );
-    passed.push(...validSubIntervals);
-  }
-
-  return passed;
-}
-
 async function isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place) {
   log(dateStr, `Checking chandrashtama for ${userNakshatra}`);
   const res  = await fetch("https://astroapi-3.divineapi.com/indian-api/v1/chandrashtama", {
@@ -729,7 +387,7 @@ function getMasterTimeRange({ date }, timeMode = "day") {
 // ── Core window calculator ────────────────────────────────────
 
 async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lon, tzone, place, config) {
-  const { secondNakshatraList, disallowedTithis, timeMode = "day", lagnaPlace = 8 } = config;
+  const { secondNakshatraList, disallowedTithis, timeMode = "day" } = config;
   const disallowedTithiSet = new Set(disallowedTithis);
 
   const waraList      = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
@@ -743,13 +401,12 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
   const isChandrashtama = await isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone, place);
   if (isChandrashtama) { log(dateStr, "Skipped — chandrashtama day"); return null; }
 
-  const [nakshatraList, tithiList, yogaList, karanaList, balam, udayLagnaList] = await Promise.all([
+  const [nakshatraList, tithiList, yogaList, karanaList, balam] = await Promise.all([
     getNakshatraTimingsForDate(dateStr, lat, lon, tzone, place),
     getTithiDetailsForDate(dateStr, lat, lon, tzone, place),
     getYogaDetailsForDate(dateStr, lat, lon, tzone, place),
     getKaranaDetailsForDate(dateStr, lat, lon, tzone, place),
-    getBalamTimings(dateStr, userNakshatra, userRasi, lat, lon, tzone, place),
-    getUdayLagna(dateStr, lat, lon, tzone, place)
+    getBalamTimings(dateStr, userNakshatra, userRasi, lat, lon, tzone, place)
   ]);
 
   const chandrabalamList = balam.chandrabalam;
@@ -811,18 +468,10 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
     const afterBlocked   = removeBlockedIntervals(masterStartTime, masterEndTime, blocked);
     log(dateStr, `${label} — after blocking: ${afterBlocked.length} interval(s) remain`);
 
-    // Apply Udaya Lagna + Planetary Position filter.
-    // Intervals where NO lagna's Nth house passes the Jupiter/Venus `name`
-    // validation are dropped entirely. Kept intervals carry targetSigns[]
-    // (the accepted house signs) for frontend display.
-    const validIntervals = udayLagnaList.length
-      ? await filterByLagnaPlace(afterBlocked, dateStr, udayLagnaList, lagnaPlace, lat, lon, tzone, place)
-      : afterBlocked;
+    if (!afterBlocked.length) { log(dateStr, `${label} — no valid intervals, skipping`); return null; }
 
-    log(dateStr, `${label} — after lagna filter: ${validIntervals.length} interval(s) passed`);
-
-    if (!validIntervals.length) { log(dateStr, `${label} — no valid intervals, skipping`); return null; }
-
+    // No Udaya Lagna / Planetary Position filtering in this variant —
+    // return the muhurat immediately after the existing filters.
     return {
       label,
       date:        dateStr,
@@ -836,8 +485,8 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
       yogaStr:     filteredYogas.map(y => y.yoga).join(", "),
       karanas:     filteredKaranas.map(k => k.karana),
       karanaStr:   filteredKaranas.map(k => k.karana).join(", "),
-      // Each interval: start_time, end_time, lagnaSign, targetSign, targetSigns[], lagnaPlace
-      timerange:   validIntervals
+      // Each interval: start_time, end_time
+      timerange:   afterBlocked
     };
   }
 

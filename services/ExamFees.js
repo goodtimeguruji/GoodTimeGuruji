@@ -1,4 +1,4 @@
-import { runAuspiciousCheck } from "./muhurat-core.js";
+import { runAuspiciousCheck } from "./muhurat-core-withoutlagna.js";
 
 const CONFIG = {
   secondNakshatraList: ["Ashwini","Rohini","Mrigashira","Ardhra","Punarvasu","Pushya","Hasta","Anuradha","Uttara Ashadha","Shravan","Uttara Bhadrapada","Revati"],
