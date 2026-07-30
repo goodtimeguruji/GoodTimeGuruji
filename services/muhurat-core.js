@@ -294,30 +294,17 @@ async function getPlanetaryPositions(dateStr, timeStr, lat, lon, tzone, place) {
   return json?.data?.planets || [];
 }
 
-// ── House validation (Jupiter / Venus rule, by planet `name`) ──
-
-const BENEFIC_PLANETS = new Set(["Jupiter", "Venus"]);
-const MALEFIC_PLANETS = new Set([
-  "Moon", "Sun", "Mars", "Mercury", "Saturn",
-  "Rahu", "Ketu", "Uranus", "Neptune", "Pluto"
-]);
+// ── House validation (empty-house rule only) ──
 
 /**
  * Given a list of planets and the target house NUMBER (e.g. 8),
  * find the planet(s) actually occupying that house at this exact moment
- * (per the API's own `house` field for this query) and validate using
- * the API's `name` field.
+ * (per the API's own `house` field for this query).
  *
- * Accept if:
- *   • the occupant's name is Jupiter, OR
- *   • the occupant's name is Venus, OR
- *   • no planet occupies the target house at all
+ * Accept ONLY if no planet at all occupies the target house.
+ * Any occupant of any kind — including Jupiter or Venus — causes rejection.
  *
- * Reject if the occupant's name is one of the listed malefics
- * (Moon, Sun, Mars, Mercury, Saturn, Rahu, Ketu, Uranus, Neptune, Pluto)
- * and neither Jupiter nor Venus is also present in that house.
- *
- * `sign`, `nakshatra_lord`, and `sub_lord` are never consulted here.
+ * `name`, `sign`, `nakshatra_lord`, and `sub_lord` are never consulted here.
  * The Ascendant entry is ignored completely.
  */
 function isNthHouseAcceptable(planets, targetHouse) {
@@ -326,17 +313,8 @@ function isNthHouseAcceptable(planets, targetHouse) {
     p => Number(p.house) === Number(targetHouse) && p.name !== "Ascendant"
   );
 
-  if (!occupants.length) return true; // no planet returned → accepted
-
-  // If Jupiter or Venus is present in the house, accept regardless of
-  // any other occupant.
-  if (occupants.some(p => BENEFIC_PLANETS.has(p.name))) return true;
-
-  // Otherwise, reject only if a listed malefic is present.
-  if (occupants.some(p => MALEFIC_PLANETS.has(p.name))) return false;
-
-  // Any other/unrecognized planet name: no rejection rule applies.
-  return true;
+  // Accept only when the house is completely empty.
+  return occupants.length === 0;
 }
 
 // ── Single-moment house check + boundary search ────────────────
@@ -432,10 +410,18 @@ async function findValidBoundaryBackward(fromDate, fromTime, limitDate, limitTim
  *   targetSign  – Nth house sign, kept for display only (not used in validation)
  *   targetSigns – [targetSign]  (array form for frontend compat)
  *   lagnaPlace  – the house N validated (e.g. 8)
+ *
+ * @param {string[]} disallowedLagnaSigns - signs (e.g. "Scorpio", "Leo") that
+ *   are never acceptable for house `lagnaPlace` (e.g. the 8th house). For
+ *   each Udaya Lagna segment, the sign occupying house `lagnaPlace` is
+ *   derived via getNthSign(entry.sign, lagnaPlace); if that derived sign is
+ *   in this list, the whole lagna segment is excluded before validation
+ *   even runs — this is unrelated to the ascendant (ascendant) sign itself.
  */
 const LAGNA_CONCURRENCY = 5;
 
-async function filterByLagnaPlace(validIntervals, dateStr, udayLagnaList, lagnaPlace, lat, lon, tzone, place) {
+async function filterByLagnaPlace(validIntervals, dateStr, udayLagnaList, lagnaPlace, lat, lon, tzone, place, disallowedLagnaSigns = []) {
+  const disallowedLagnaSignSet = new Set(disallowedLagnaSigns);
   const passed = [];
 
   for (const interval of validIntervals) {
@@ -443,10 +429,19 @@ async function filterByLagnaPlace(validIntervals, dateStr, udayLagnaList, lagnaP
     const intervalEnd   = new Date(interval.end_time.replace(" ", "T"));
 
     // 1. Every Udaya Lagna segment that overlaps this muhurat interval
+    //    (segments where the house-`lagnaPlace` sign — e.g. the 8th house —
+    //    falls in disallowedLagnaSigns are dropped here, before any
+    //    Planetary Position API calls are made for them)
     const overlapping = udayLagnaList.filter(entry => {
       const s = new Date(entry.start_time.replace(" ", "T"));
       const e = new Date(entry.end_time.replace(" ", "T"));
-      return s < intervalEnd && e > intervalStart;
+      if (!(s < intervalEnd && e > intervalStart)) return false;
+      const houseSign = getNthSign(entry.sign, lagnaPlace);
+      if (disallowedLagnaSignSet.has(houseSign)) {
+        log(dateStr, `  → lagna segment ${entry.start_time}→${entry.end_time} skipped — house${lagnaPlace} sign ${houseSign} is disallowed`);
+        return false;
+      }
+      return true;
     });
 
     if (!overlapping.length) {
@@ -729,11 +724,17 @@ function getMasterTimeRange({ date }, timeMode = "day") {
 // ── Core window calculator ────────────────────────────────────
 
 async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lon, tzone, place, config) {
-  const { secondNakshatraList, disallowedTithis, timeMode = "day", lagnaPlace = 8 } = config;
+  const { secondNakshatraList, disallowedTithis, disallowedVaras = [], disallowedLagnaSigns = [], timeMode = "day", lagnaPlace = 8 } = config;
   const disallowedTithiSet = new Set(disallowedTithis);
+  const disallowedVaraSet  = new Set(disallowedVaras);
 
   const waraList      = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
   const currentWeekday = waraList?.weekday;
+
+  if (disallowedVaraSet.has(currentWeekday)) {
+    log(dateStr, `Skipped — vara ${currentWeekday} is disallowed`);
+    return null;
+  }
 
   if (isNakshatraMarkedM(currentWeekday, userNakshatra)) {
     log(dateStr, `Skipped — nakshatra ${userNakshatra} is marked inauspicious on ${currentWeekday}`);
@@ -816,7 +817,7 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
     // validation are dropped entirely. Kept intervals carry targetSigns[]
     // (the accepted house signs) for frontend display.
     const validIntervals = udayLagnaList.length
-      ? await filterByLagnaPlace(afterBlocked, dateStr, udayLagnaList, lagnaPlace, lat, lon, tzone, place)
+      ? await filterByLagnaPlace(afterBlocked, dateStr, udayLagnaList, lagnaPlace, lat, lon, tzone, place, disallowedLagnaSigns)
       : afterBlocked;
 
     log(dateStr, `${label} — after lagna filter: ${validIntervals.length} interval(s) passed`);
@@ -865,7 +866,13 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
  * @param {number} lon
  * @param {number} tzone
  * @param {string} place
- * @param {{ secondNakshatraList: string[], disallowedTithis: string[] }} config
+ * @param {{ secondNakshatraList: string[], disallowedTithis: string[], disallowedVaras?: string[], disallowedLagnaSigns?: string[] }} config
+ *   disallowedVaras – optional list of weekday names (e.g. "Shaniwara") whose
+ *   entire day is skipped outright, before any other check runs.
+ *   disallowedLagnaSigns – optional list of signs (e.g. "Scorpio", "Leo")
+ *   that must never occupy house `lagnaPlace` (e.g. the 8th house); any
+ *   Udaya Lagna segment whose derived house-`lagnaPlace` sign matches is
+ *   dropped entirely.
  */
 export async function runAuspiciousCheck(fromDateStr, toDateStr, userNakshatra, userRasi, lat, lon, tzone, place, config) {
   const resultsFiltered = [];
