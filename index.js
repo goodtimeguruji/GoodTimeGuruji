@@ -80,11 +80,18 @@ app.use(helmet({
       upgradeInsecureRequests: []
     }
   },
+  // 1. ADD THIS: Allows the Google Popup to talk back to your site via window.opener
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  
+  // 2. ADD THIS: Prevents corporate resource access block issues
+  crossOriginResourcePolicy: { policy: "cross-origin" }, 
+  
   crossOriginEmbedderPolicy: false,
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   permissionsPolicy: false
 }));
+
 
 // Permissions-Policy
 app.use((req, res, next) => {
