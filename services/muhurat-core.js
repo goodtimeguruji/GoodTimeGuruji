@@ -48,13 +48,6 @@ const NAKSHATRA_NORMALIZE_MAP = {
   "Uttara Ashadha": "Uttara Ashada"
 };
 
-// Zodiac sign order (used for lagna place counting)
-const ZODIAC_SIGNS = [
-  "Aries", "Taurus", "Gemini", "Cancer",
-  "Leo", "Virgo", "Libra", "Scorpio",
-  "Sagittarius", "Capricorn", "Aquarius", "Pisces"
-];
-
 // ── helpers ──────────────────────────────────────────────────
 
 function pad(n) { return String(n).padStart(2, "0"); }
@@ -255,13 +248,6 @@ function getLagnaSignAtTime(udayLagnaList, timeStr) {
   return null;
 }
 
-// Count `place` steps forward from startSign (1-based, wrapping around 12 signs).
-function getNthSign(startSign, place) {
-  const idx = ZODIAC_SIGNS.indexOf(startSign);
-  if (idx === -1) return null;
-  return ZODIAC_SIGNS[(idx + place - 1) % 12];
-}
-
 // ── Planetary Position API ────────────────────────────────────
 
 /**
@@ -407,16 +393,16 @@ async function findValidBoundaryBackward(fromDate, fromTime, limitDate, limitTim
  *   start_time  – adjusted sub-interval start (HH:MM:SS boundary)
  *   end_time    – adjusted sub-interval end   (HH:MM:SS boundary)
  *   lagnaSign   – Udaya Lagna sign for this sub-interval
- *   targetSign  – Nth house sign, kept for display only (not used in validation)
+ *   targetSign  – the raw lagna sign for this segment, kept for display only
+ *                 (not used in validation); same value as lagnaSign
  *   targetSigns – [targetSign]  (array form for frontend compat)
  *   lagnaPlace  – the house N validated (e.g. 8)
  *
  * @param {string[]} disallowedLagnaSigns - signs (e.g. "Scorpio", "Leo") that
- *   are never acceptable for house `lagnaPlace` (e.g. the 8th house). For
- *   each Udaya Lagna segment, the sign occupying house `lagnaPlace` is
- *   derived via getNthSign(entry.sign, lagnaPlace); if that derived sign is
- *   in this list, the whole lagna segment is excluded before validation
- *   even runs — this is unrelated to the ascendant (ascendant) sign itself.
+ *   are never acceptable as the lagna sign for a segment. No house-sign
+ *   arithmetic is done here — each Udaya Lagna segment's own `sign` is
+ *   checked directly against this list; if it matches, the whole lagna
+ *   segment is excluded before validation even runs.
  */
 const LAGNA_CONCURRENCY = 5;
 
@@ -436,9 +422,9 @@ async function filterByLagnaPlace(validIntervals, dateStr, udayLagnaList, lagnaP
       const s = new Date(entry.start_time.replace(" ", "T"));
       const e = new Date(entry.end_time.replace(" ", "T"));
       if (!(s < intervalEnd && e > intervalStart)) return false;
-      const houseSign = getNthSign(entry.sign, lagnaPlace);
+      const houseSign = entry.sign;
       if (disallowedLagnaSignSet.has(houseSign)) {
-        log(dateStr, `  → lagna segment ${entry.start_time}→${entry.end_time} skipped — house${lagnaPlace} sign ${houseSign} is disallowed`);
+        log(dateStr, `  → lagna segment ${entry.start_time}→${entry.end_time} skipped — lagna sign ${houseSign} is disallowed`);
         return false;
       }
       return true;
@@ -470,7 +456,7 @@ async function filterByLagnaPlace(validIntervals, dateStr, udayLagnaList, lagnaP
         startFull:  formatDateTime(subStart),
         endFull:    formatDateTime(subEnd),
         lagnaSign:  entry.sign,
-        targetSign: getNthSign(entry.sign, lagnaPlace) // display-only; validation uses lagnaPlace (house number) directly
+        targetSign: entry.sign // display-only; the raw lagna sign for this time segment, sent back as-is
       };
     });
 
