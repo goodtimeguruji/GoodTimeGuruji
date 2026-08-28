@@ -17,6 +17,37 @@ function logErr(dateStr, msg, err) {
   console.error(`[${new Date().toISOString()}] ❌ [${dateStr}] ${msg}`, err?.message || "");
 }
 
+// ── live-API spelling-drift guard ───────────────────────────
+// The Aug 2026 spelling audit found several Divine API endpoints using
+// spellings this file didn't recognize (e.g. Karana returning "Naga"/
+// "Kintughna" while DISALLOWED_KARANAS had "Nagava"/"Kimstughna"; Yoga
+// returning "Vraidhiti" while DISALLOWED_YOGAS had "Vaidhriti"; and
+// Chandrabalam returning English zodiac names ("Aries") while userRasi is
+// Sanskrit ("Mesha")). Those mismatches failed silently — a disallowed day
+// simply never got filtered, with no error anywhere.
+//
+// This helper doesn't change behaviour; it just logs a loud warning
+// whenever an API value isn't in the master list this file expects, so a
+// future spelling drift is caught in logs immediately instead of months
+// later. Call it wherever a raw API value gets compared against one of the
+// ALL_*/DISALLOWED_* constants below.
+function warnOnUnknownValue(dateStr, category, value, knownValues) {
+  if (value == null || value === "") return;
+  const known = knownValues instanceof Set ? knownValues : new Set(knownValues);
+  if (!known.has(value)) {
+    logWarn(dateStr, `Unrecognized ${category} value from API: "${value}" — not in this file's known ${category} list. Possible spelling drift; verify against the live API and update the relevant constant.`);
+  }
+}
+
+// NOTE: this list intentionally matches the live Nakshatra API's spelling
+// (confirmed via the Aug 2026 audit) AND every ceremony CONFIG's
+// secondNakshatraList (e.g. StartBuisiness.js uses "Satabhisha") — NOT
+// muhurat-finder.html's dropdown spelling, which differs for 3 entries
+// ("Shatabhisha", "Purva Ashadha", "Purva Bhadrapada"). Renaming this list
+// to match the frontend would have silently broken every ceremony config's
+// "common" nakshatra matching instead. Use canonicalNakshatra() (below) to
+// translate the frontend's userNakshatra into this spelling before any
+// comparison — that's now done at every comparison point in this file.
 const NAKSHATRA_LIST = [
   "Ashwini", "Bharani", "Krittika", "Rohini",
   "Mrigashira", "Ardhra", "Punarvasu", "Pushya",
@@ -39,14 +70,70 @@ const NAKSHATRA_WEEKDAY_RULES = {
   Shaniwara:   { Ashleysha: "M", "Uttara Phalguni": "M", Hasta: "M", Chitra: "M", "Poorva Bhadrapada": "M", Revati: "M" }
 };
 
-const DISALLOWED_YOGAS   = new Set(["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti"]);
-const DISALLOWED_KARANAS = new Set(["Vishti", "Bhadra", "Chatushpada", "Nagava", "Kimstughna", "Shakuni"]);
+// Confirmed against a full month of live API output (Aug 2026 audit):
+// the Karana API actually returns "Naga" and "Kintughna" — NOT "Nagava" or
+// "Kimstughna" as previously assumed. Both the corrected and the old
+// (in case the API is inconsistent across regions/versions) spellings are
+// kept, matching this file's existing Vishti/Bhadra dual-entry pattern.
+const DISALLOWED_YOGAS   = new Set(["Vyaghata", "Vishkumbha", "Parigha", "Shoola", "Ganda", "Vyatipaata", "Vajra", "Sula", "Vaidhriti", "Vraidhiti"]);
+const DISALLOWED_KARANAS = new Set(["Vishti", "Bhadra", "Chatushpada", "Nagava", "Naga", "Kimstughna", "Kintughna", "Shakuni"]);
 
-const NAKSHATRA_NORMALIZE_MAP = {
-  Ashleysha: "Ashlesha",
-  "Poorva Ashadha": "Purva Ashada",
-  "Uttara Ashadha": "Uttara Ashada"
+// Full master lists (all 27 yogas / 11 karanas / 7 waras / 12 rasis), taken
+// from the Aug 2026 live-API audit, used ONLY for drift detection via
+// warnOnUnknownValue — they are not filters by themselves.
+const ALL_YOGAS = new Set([
+  "Vishkumbha", "Priti", "Ayushman", "Saubhagya", "Shobhana", "Atiganda", "Sukarma", "Dhriti",
+  "Shoola", "Ganda", "Vridhi", "Dhruv", "Vyaghata", "Harshana", "Vajra", "Sidhi", "Vyatipaata",
+  "Variyana", "Parigha", "Shiva", "Sadhya", "Shubha", "Shukla", "Bhramha", "Indra or Aindra",
+  "Vraidhiti", "Shidha"
+]);
+const ALL_KARANAS = new Set(["Bav", "Balav", "Kaulava", "Taitila", "Gar", "Vanija", "Vishti", "Shakuni", "Chatushpada", "Naga", "Kintughna"]);
+const ALL_WARAS   = new Set(["Raviwara", "Somawara", "Mangalawara", "Budhawara", "Guruwara", "Shukrawara", "Shaniwara"]);
+const ALL_RASIS_ENGLISH = new Set(["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]);
+
+// The Chandrabalam API returns English zodiac names ("Aries", "Taurus", …)
+// while userRasi is Sanskrit ("Mesha", "Vrishabha", …) — confirmed by the
+// Aug 2026 audit, where `target: userRasi` (Sanskrit) was being compared
+// directly against API values that were always English, so chandrabalam
+// silently never matched. Normalize userRasi to English before comparing.
+const RASI_NORMALIZE_MAP = {
+  Mesha: "Aries", Vrishabha: "Taurus", Mithuna: "Gemini", Karka: "Cancer", Kark: "Cancer",
+  Simha: "Leo", Kanya: "Virgo", Tula: "Libra", Vrischika: "Scorpio", Vrishchika: "Scorpio",
+  Dhanu: "Sagittarius", Makara: "Capricorn", Kumbha: "Aquarius", Meena: "Pisces", Mina: "Pisces"
 };
+
+// Every known spelling variant for each nakshatra across the 3 places a
+// spelling can originate from — muhurat-finder.html's dropdown, the live
+// Nakshatra API, and the Tarabalam API — mapped to ONE canonical form,
+// which is the ORIGINAL spelling this file (and every ceremony CONFIG's
+// secondNakshatraList) already uses. This replaces the old, narrower
+// NAKSHATRA_NORMALIZE_MAP, which only covered the Nakshatra-API vs
+// Tarabalam-API mismatch and was never applied to NAKSHATRA_LIST lookups,
+// weekday "M"-rule checks, or the Chandrashtama comparison — exactly the
+// 3 places the Aug 2026 audit + a direct read of muhurat-finder.html found
+// real, silent failures (the frontend sends "Shatabhisha"/"Purva Ashadha"/
+// "Purva Bhadrapada", 3 of the 27 values, which never matched this file's
+// "Satabhisha"/"Poorva Ashadha"/"Poorva Bhadrapada"). canonicalNakshatra()
+// is now applied at all of those comparison points.
+const NAKSHATRA_SPELLING_GROUPS = [
+  ["Ashwini"], ["Bharani"], ["Krittika"], ["Rohini"],
+  ["Mrigashira"], ["Ardhra"], ["Punarvasu"], ["Pushya"],
+  ["Ashleysha", "Ashlesha"], ["Magha"],
+  ["Purva Phalguni"], ["Uttara Phalguni"],
+  ["Hasta"], ["Chitra"], ["Swati"], ["Vishakha"],
+  ["Anuradha"], ["Jyeshtha"], ["Moola"],
+  ["Poorva Ashadha", "Purva Ashadha", "Purva Ashada"],   // canonical: "Poorva Ashadha" (matches NAKSHATRA_LIST/API/configs); frontend sends "Purva Ashadha"; Tarabalam API returns "Purva Ashada"
+  ["Uttara Ashadha", "Uttara Ashada"],
+  ["Shravan", "Shravana"],
+  ["Dhanishta"],
+  ["Satabhisha", "Shatabhisha"],                          // canonical: "Satabhisha" (matches NAKSHATRA_LIST/API/configs); frontend sends "Shatabhisha"
+  ["Poorva Bhadrapada", "Purva Bhadrapada"],               // canonical: "Poorva Bhadrapada" (matches NAKSHATRA_LIST/API/configs); frontend sends "Purva Bhadrapada"
+  ["Uttara Bhadrapada"],
+  ["Revati"]
+];
+const NAKSHATRA_CANONICAL_MAP = Object.fromEntries(
+  NAKSHATRA_SPELLING_GROUPS.flatMap(group => group.map(variant => [variant, group[0]]))
+);
 
 // ── helpers ──────────────────────────────────────────────────
 
@@ -89,7 +176,9 @@ function formatDateTime(d) {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-function normalizeNakshatra(name) { return NAKSHATRA_NORMALIZE_MAP[name] || name; }
+function normalizeNakshatra(name) { return NAKSHATRA_CANONICAL_MAP[name] || name; }
+const canonicalNakshatra = normalizeNakshatra; // alias for readability at new call sites
+function normalizeRasi(name) { return RASI_NORMALIZE_MAP[name] || name; }
 
 function isNakshatraMarkedM(weekday, nakshatra) {
   return NAKSHATRA_WEEKDAY_RULES[weekday]?.[nakshatra] === "M";
@@ -566,7 +655,13 @@ async function isNakshatraChandrashtama(dateStr, userNakshatra, lat, lon, tzone,
   const target = new Date(dateStr);
   const result = json.data.some(({ start_date, end_date, chandrashtama }) =>
     target >= new Date(start_date) && target <= new Date(end_date) &&
-    chandrashtama.some(n => n.nakshatra.toLowerCase() === userNakshatra.toLowerCase())
+    chandrashtama.some(n => {
+      const apiNakshatra = canonicalNakshatra(n.nakshatra);
+      if (!NAKSHATRA_LIST.includes(apiNakshatra)) {
+        logWarn(dateStr, `Unrecognized nakshatra "${n.nakshatra}" from Chandrashtama API — not in NAKSHATRA_LIST even after canonicalization.`);
+      }
+      return apiNakshatra.toLowerCase() === userNakshatra.toLowerCase();
+    })
   );
   log(dateStr, `Chandrashtama → ${result ? "❌ YES (skipping day)" : "✅ NO (proceeding)"}`);
   return result;
@@ -611,6 +706,13 @@ function getBalamWindow({ values, target, upto, dateStr, key }) {
 async function getBalamTimings(dateStr, userNakshatra, userRasi, lat, lon, tzone, place) {
   log(dateStr, `Fetching chandrabalam & tarabalam for nakshatra: ${userNakshatra}, rasi: ${userRasi}`);
   const normNakshatra = normalizeNakshatra(userNakshatra);
+  // Chandrabalam API returns English zodiac names ("Aries", "Taurus", …).
+  // Confirmed by reading muhurat-finder.html: its <select id="rasi"> already
+  // sends English values ("Aries", "Taurus", …), so this is a defensive
+  // passthrough for the current frontend (RASI_NORMALIZE_MAP won't match
+  // an already-English value and returns it unchanged) — but it protects
+  // against any other caller that passes a Sanskrit rasi ("Mesha", …).
+  const normRasi = normalizeRasi(userRasi);
 
   const res  = await fetch("https://astroapi-2.divineapi.com/indian-api/v2/find-chandrabalam-and-tarabalam", {
     method: "POST",
@@ -625,9 +727,11 @@ async function getBalamTimings(dateStr, userNakshatra, userRasi, lat, lon, tzone
 
   tarabalamData.current = (tarabalamData.current || []).map(normalizeNakshatra);
   tarabalamData.next    = (tarabalamData.next    || []).map(normalizeNakshatra);
+  (chandrabalamData.current || []).forEach(v => warnOnUnknownValue(dateStr, "rasi (chandrabalam)", v, ALL_RASIS_ENGLISH));
+  (chandrabalamData.next    || []).forEach(v => warnOnUnknownValue(dateStr, "rasi (chandrabalam)", v, ALL_RASIS_ENGLISH));
 
   const result = {
-    chandrabalam: getBalamWindow({ values: chandrabalamData, target: userRasi,      upto: chandrabalamData.upto, dateStr, key: "rasi"      }) || [],
+    chandrabalam: getBalamWindow({ values: chandrabalamData, target: normRasi,      upto: chandrabalamData.upto, dateStr, key: "rasi"      }) || [],
     tarabalam:    getBalamWindow({ values: tarabalamData,    target: normNakshatra, upto: tarabalamData.upto,    dateStr, key: "nakshatra" }) || []
   };
   log(dateStr, `Balam → chandrabalam: ${result.chandrabalam.length ? "✅" : "❌"} tarabalam: ${result.tarabalam.length ? "✅" : "❌"}`);
@@ -679,8 +783,12 @@ function removeBlockedIntervals(masterStart, masterEnd, blockedIntervals) {
 // ── Nakshatra filtering ───────────────────────────────────────
 
 function getFilteredNakshatra(startItem, secondNakshatraList) {
-  const startIndex = NAKSHATRA_LIST.indexOf(startItem);
-  if (startIndex === -1) return { filtered: [], common: [] };
+  const canonicalStartItem = canonicalNakshatra(startItem);
+  const startIndex = NAKSHATRA_LIST.indexOf(canonicalStartItem);
+  if (startIndex === -1) {
+    logWarn("N/A", `Nakshatra "${startItem}" not found in NAKSHATRA_LIST (even after canonicalization) — returning no results. Likely a NEW spelling variant; add it to NAKSHATRA_SPELLING_GROUPS.`);
+    return { filtered: [], common: [] };
+  }
 
   const rotated  = [...NAKSHATRA_LIST.slice(startIndex), ...NAKSHATRA_LIST.slice(0, startIndex)];
   const filtered = rotated.filter((_, idx) => !POSITIONS_TO_REMOVE.has(idx + 1));
@@ -714,8 +822,14 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
   const disallowedTithiSet = new Set(disallowedTithis);
   const disallowedVaraSet  = new Set(disallowedVaras);
 
+  // Translate whatever spelling userNakshatra arrived in (frontend, API,
+  // etc. — see NAKSHATRA_SPELLING_GROUPS) into this file's canonical form,
+  // ONCE, so every comparison below is guaranteed consistent.
+  userNakshatra = canonicalNakshatra(userNakshatra);
+
   const waraList      = await getWaraDetailsForDate(dateStr, lat, lon, tzone, place);
   const currentWeekday = waraList?.weekday;
+  warnOnUnknownValue(dateStr, "wara", currentWeekday, ALL_WARAS);
 
   if (disallowedVaraSet.has(currentWeekday)) {
     log(dateStr, `Skipped — vara ${currentWeekday} is disallowed`);
@@ -755,6 +869,9 @@ async function getAuspiciousTimeWindow(dateStr, userNakshatra, userRasi, lat, lo
 
     const filteredNakshatras = safeNakshatras.filter(n => safeAllowedNakshatras.has(n?.nakshatra));
     const filteredTithis     = safeTithis.filter(t  => !disallowedTithiSet.has(t?.tithi));
+    safeYogas.forEach(y => warnOnUnknownValue(dateStr, "yoga", y?.yoga, ALL_YOGAS));
+    safeKaranas.forEach(k => warnOnUnknownValue(dateStr, "karana", k?.karana, ALL_KARANAS));
+
     const filteredYogas      = safeYogas.filter(y   => !DISALLOWED_YOGAS.has(y?.yoga));
     const filteredKaranas    = safeKaranas.filter(k  => !DISALLOWED_KARANAS.has(k?.karana));
 

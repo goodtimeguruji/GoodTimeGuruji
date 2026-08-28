@@ -596,7 +596,14 @@ support@goodtimeguruji.in">
               Authorization: `Bearer ${token}`
             },
             body: JSON.stringify({
-              results: storedData.filtered,
+              // emailService.js's sendMuhuratEmail destructures
+              // `{ filtered, common, selectedFunction }` from req.body — it
+              // does NOT read a "results" key. Sending "results" here meant
+              // the backend always saw filtered=[] and common=[], which
+              // always failed its "No Muhurat results available" check
+              // before nodemailer ever ran. Send the real field names.
+              filtered: storedData.filtered || [],
+              common: storedData.common || [],
               selectedFunction: storedData.selectedFunction
             })
           }
